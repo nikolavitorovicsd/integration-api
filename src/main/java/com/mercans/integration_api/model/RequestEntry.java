@@ -1,9 +1,17 @@
 package com.mercans.integration_api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.opencsv.bean.CsvBindByName;
 
-public record RequestEntry(
-        @JsonProperty(value = "ACTION", required = true) String action,
-        @JsonProperty(value = "worker_name", required = true) String name
-) {
+public class RequestEntry {
+
+  @CsvBindByName(column = "ACTION")
+  String action;
+
+  @CsvBindByName(column = "worker_name")
+  String name;
+
+  @CsvBindByName(column = "contract_workerId")
+  String employeeCode;
+  //     @CsvBindByName(column = "contract_workerId") String payComponents;
+
 }

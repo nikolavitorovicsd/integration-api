@@ -16,22 +16,25 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class CsvController {
 
-    private final CsvReadService csvReadService;
+  private final CsvReadService csvReadService;
 
-    @GetMapping(value = "/hello")
-    public ResponseEntity<String> helloThere() {
-        return new ResponseEntity<>("Hello there", HttpStatus.OK);
+  @GetMapping(value = "/hello")
+  public ResponseEntity<String> helloThere() {
+    return new ResponseEntity<>("Hello there", HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/csv")
+  public ResponseEntity<String> uploadCsv(@RequestParam("file") MultipartFile file)
+      throws JobInstanceAlreadyCompleteException,
+          JobExecutionAlreadyRunningException,
+          JobParametersInvalidException,
+          JobRestartException {
+
+    if (file.isEmpty()) {
+      return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
     }
+    var xx = csvReadService.saveCsvData(file);
 
-    @PostMapping(value = "/csv")
-    public ResponseEntity<String> uploadCsv(@RequestParam("file") MultipartFile file) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
-
-        if (file.isEmpty()) {
-            return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
-        }
-       var xx = csvReadService.saveCsvData(file);
-
-        return new ResponseEntity<>("Hello there", HttpStatus.OK);
-    }
-
+    return new ResponseEntity<>("Hello there", HttpStatus.OK);
+  }
 }

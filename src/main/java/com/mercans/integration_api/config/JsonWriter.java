@@ -10,11 +10,10 @@ import org.springframework.stereotype.Component;
 @JobScope
 public class JsonWriter implements ItemWriter<RequestEntry> {
 
-
-    @Override
-    public void write(Chunk<? extends RequestEntry> chunk) throws Exception {
-        var xx = chunk.getItems().stream().toList();
-        System.out.printf("RADIIIIIII" );
-        System.out.printf(xx.toString());
-    }
+  @Override
+  public void write(Chunk<? extends RequestEntry> chunk) {
+    // todo Next step is saving to db
+    var xx = chunk.getItems().stream().toList();
+    System.out.printf("Workingggg");
+  }
 }
