@@ -1,5 +1,6 @@
 package com.mercans.integration_api.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.ValidationException;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public enum Action {
 
   private final String value;
 
+  @JsonCreator
   public static Action fromClientString(String value) {
     var lowerCaseValue = value.toLowerCase();
     return Optional.ofNullable(MAP.get(lowerCaseValue))

@@ -33,8 +33,9 @@ public class CsvController {
     if (file.isEmpty()) {
       return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
     }
-    var xx = csvReadService.saveCsvData(file);
+    var jsonId = csvReadService.saveCsvData(file);
 
-    return new ResponseEntity<>("Hello there", HttpStatus.OK);
+    return new ResponseEntity<>(
+        String.format("Json response saved to db with id: '%s'", jsonId), HttpStatus.OK);
   }
 }

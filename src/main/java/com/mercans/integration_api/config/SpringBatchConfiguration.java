@@ -1,6 +1,7 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.model.RequestEntry;
+import jakarta.validation.ValidationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -25,13 +26,18 @@ public class SpringBatchConfiguration {
       PlatformTransactionManager platformTransactionManager,
       CsvFileReader csvFileReader,
       JsonWriter jsonWriter,
-      @Value("${integration.chunk-size}") int chunkSize) // map from yaml)
+      @Value("${integration.chunk-size}") int chunkSize,
+      @Value("${integration.skip-limit}") int skipLimit) // map from yaml)
       {
     return new StepBuilder("readCsvStep", jobRepository)
         .<RequestEntry, RequestEntry>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
         .processor(item -> item)
         .writer(jsonWriter)
+        .faultTolerant()
+        .skip(ValidationException.class) // todo nikola think about validating exceptions
+        .skipLimit(skipLimit) // todo setting high for now
+        // todo add skip listener to collect all skipped rows
         .build();
   }
 }

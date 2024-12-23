@@ -1,6 +1,10 @@
 package com.mercans.integration_api.service;
 
+import static com.mercans.integration_api.constants.GlobalConstants.CSV_FILE_PATH;
+
+import com.mercans.integration_api.constants.GlobalConstants;
 import java.util.Date;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -19,8 +23,6 @@ public class CsvReadService {
 
   @Autowired Job readCsvJob;
 
-  public static final String CSV_FILE_NAME = "csvFileName";
-
   // todo nikola batching should be done, from file name that will be stored in app memory and after
   // job is completed file
   //  should be deleted but there should be result json saved to db with uuiid and file name that
@@ -29,25 +31,32 @@ public class CsvReadService {
   // saved to db so user can fetch it
   // todo nikola errors response in json sould probably contain array of employee ids which were
   // skipped because they were missing some fields with validation message included
-  public String saveCsvData(MultipartFile fileName)
+  public UUID saveCsvData(MultipartFile fileName)
       throws JobInstanceAlreadyCompleteException,
           JobExecutionAlreadyRunningException,
           JobParametersInvalidException,
           JobRestartException {
 
+    var jsonResponseUuid = UUID.randomUUID();
+
     JobParameters jobParameters =
         new JobParametersBuilder()
             // passing csv path so i can reuse it later during reading of file in CsvFileReader
             .addJobParameter(
-                CSV_FILE_NAME,
+                CSV_FILE_PATH,
                 new JobParameter<>(
-                    "src/main/resources/csv_files/input_01.csv",
+                    "src/main/resources/csv_files/input_01.csv", // todo hardcoded, needs to be
+                    // handled differently
                     String.class)) // path must be full from the source
-            .addJobParameter("date", new JobParameter<>(new Date(), Date.class))
+            .addJobParameter(GlobalConstants.DATE, new JobParameter<>(new Date(), Date.class))
+            .addJobParameter(
+                GlobalConstants.CSV_FILE_NAME, new JobParameter<>(fileName.getName(), String.class))
+            .addJobParameter(
+                GlobalConstants.JSON_UUID, new JobParameter<>(jsonResponseUuid, UUID.class))
             .toJobParameters();
 
-    JobExecution execute = jobLauncher.run(readCsvJob, jobParameters);
+    jobLauncher.run(readCsvJob, jobParameters);
 
-    return "Success";
+    return jsonResponseUuid;
   }
 }
