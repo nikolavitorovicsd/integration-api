@@ -7,6 +7,11 @@ spring:
     password: pass
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  batch:
+    jdbc:
+      initialize-schema: always
 server:
   port: 8080
 
+integration:
+  chunk-size: 100
