@@ -1,15 +1,15 @@
 package com.mercans.integration_api.config;
 
-import static com.mercans.integration_api.constants.GlobalConstants.CSV_FILE_PATH;
+import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CSV_FILE_PATH;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.mercans.integration_api.exception.CsvReadCustomExceptionHandler;
 import com.mercans.integration_api.model.RequestEntry;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -35,21 +35,23 @@ public class CsvFileReader implements ItemStreamReader<RequestEntry> {
   private Reader fileReader;
 
   public CsvFileReader(
-      @Value("#{jobParameters['" + CSV_FILE_PATH + "']}") String csvFileName, Validator validator) {
+      @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName,
+      Validator validator) {
     this.csvFileName = csvFileName;
     this.validator = validator;
   }
 
+  // this method maps csv lines directly to java pojo class using opencsv lib
   @SneakyThrows
   @Override
   public void open(ExecutionContext executionContext) throws ItemStreamException {
-    // todo Next step is to upload file to somewhere and then work with it
     try {
       fileReader = new FileReader(csvFileName);
       CsvToBean<RequestEntry> csvToBean =
           new CsvToBeanBuilder<RequestEntry>(fileReader)
               .withType(RequestEntry.class)
               .withIgnoreLeadingWhiteSpace(true) // handle white spaces in csv
+              .withExceptionHandler(new CsvReadCustomExceptionHandler())
               .build();
 
       csvIterator = csvToBean.iterator();
@@ -63,6 +65,7 @@ public class CsvFileReader implements ItemStreamReader<RequestEntry> {
     //
   }
 
+  // closing reader
   @SneakyThrows
   @Override
   public void close() throws ItemStreamException {
@@ -74,6 +77,7 @@ public class CsvFileReader implements ItemStreamReader<RequestEntry> {
     if (csvIterator.hasNext()) {
       RequestEntry requestEntry = csvIterator.next();
 
+      // if there are validation exceptions we skip that line
       Set<ConstraintViolation<RequestEntry>> violations = validator.validate(requestEntry);
 
       if (isNotEmpty(violations)) {
