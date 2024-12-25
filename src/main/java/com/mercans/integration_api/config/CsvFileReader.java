@@ -1,20 +1,16 @@
 package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CSV_FILE_PATH;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.mercans.integration_api.exception.CsvReadCustomExceptionHandler;
-import com.mercans.integration_api.model.RequestEntry;
+import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHandler;
+import com.mercans.integration_api.model.EmployeeRecord;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
-import java.util.Set;
 import lombok.SneakyThrows;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
@@ -25,11 +21,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class CsvFileReader implements ItemStreamReader<RequestEntry> {
+public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   private final String csvFileName;
 
-  private Iterator<RequestEntry> csvIterator;
+  private Iterator<EmployeeRecord> csvIterator;
 
   private final Validator validator;
   private Reader fileReader;
@@ -42,16 +38,17 @@ public class CsvFileReader implements ItemStreamReader<RequestEntry> {
   }
 
   // this method maps csv lines directly to java pojo class using opencsv lib
-  @SneakyThrows
   @Override
   public void open(ExecutionContext executionContext) throws ItemStreamException {
     try {
       fileReader = new FileReader(csvFileName);
-      CsvToBean<RequestEntry> csvToBean =
-          new CsvToBeanBuilder<RequestEntry>(fileReader)
-              .withType(RequestEntry.class)
+      CsvToBean<EmployeeRecord> csvToBean =
+          new CsvToBeanBuilder<EmployeeRecord>(fileReader)
+              .withType(EmployeeRecord.class)
               .withIgnoreLeadingWhiteSpace(true) // handle white spaces in csv
-              .withExceptionHandler(new CsvReadCustomExceptionHandler())
+              .withExceptionHandler(
+                  new CsvReadCustomExceptionHandler()) // handle all kinds of exceptions that should
+              // be skipped in this class
               .build();
 
       csvIterator = csvToBean.iterator();
@@ -73,17 +70,9 @@ public class CsvFileReader implements ItemStreamReader<RequestEntry> {
   }
 
   @Override
-  public RequestEntry read() {
+  public EmployeeRecord read() {
     if (csvIterator.hasNext()) {
-      RequestEntry requestEntry = csvIterator.next();
-
-      // if there are validation exceptions we skip that line
-      Set<ConstraintViolation<RequestEntry>> violations = validator.validate(requestEntry);
-
-      if (isNotEmpty(violations)) {
-        throw new ValidationException(violations.toString());
-      }
-      return requestEntry;
+      return csvIterator.next();
     }
     return null;
   }

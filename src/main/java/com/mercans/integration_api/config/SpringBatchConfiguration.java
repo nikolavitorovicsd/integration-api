@@ -1,6 +1,6 @@
 package com.mercans.integration_api.config;
 
-import com.mercans.integration_api.model.RequestEntry;
+import com.mercans.integration_api.model.EmployeeRecord;
 import jakarta.validation.ValidationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -25,7 +25,8 @@ public class SpringBatchConfiguration {
       CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener) {
     return new JobBuilder("readCsvJob", jobRepository)
         .start(readCsvStep)
-        // todo better use steps insted of listeners as they somehow are in different order than registered
+        // todo better use steps insted of listeners as they somehow are in different order than
+        // registered
         .listener(removeUploadedCsvFileAfterJobListener)
         .listener(compressJsonAndRemoveAfterJobListener)
         .build();
@@ -36,22 +37,31 @@ public class SpringBatchConfiguration {
       JobRepository jobRepository,
       PlatformTransactionManager platformTransactionManager,
       CsvFileReader csvFileReader,
+      JsonProcessor jsonProcessor,
       JsonWriter jsonWriter,
       @Value("${integration.chunk-size}") int chunkSize,
       @Value("${integration.skip-limit}") int skipLimit) {
     return new StepBuilder("readCsvStep", jobRepository)
-        .<RequestEntry, RequestEntry>chunk(chunkSize, platformTransactionManager)
+        .<EmployeeRecord, EmployeeRecord>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
-        .processor(item -> item)
+        .faultTolerant()
+        .skip(ValidationException.class)
+        .skipLimit(skipLimit)
+        .skipPolicy(
+            (t, skipCount) -> {
+              if (t.getCause() instanceof ValidationException) {
+                return skipCount < skipLimit;
+              }
+              return false;
+            })
+        .processor(jsonProcessor)
+        .faultTolerant()
+        .skip(ValidationException.class)
+        .skipLimit(skipLimit)
         .writer(jsonWriter)
         .faultTolerant()
-        .skip(
-            ValidationException
-                .class) // skip all rows that cause ValidationException // todo nikola think about
-        // validating exceptions
-        .skipLimit(
-            skipLimit) // for now skip limit is higher than anticipated csv lines count to allow
-        // whole file to be processed
+        .skip(ValidationException.class) // skip all rows that cause ValidationException
+        .skipLimit(skipLimit) // for now skip limit is higher than anticipated csv lines count
         // todo add skip listener to collect all skipped rows
         .build();
   }

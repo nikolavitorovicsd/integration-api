@@ -1,4 +1,4 @@
-package com.mercans.integration_api.exception;
+package com.mercans.integration_api.exception.handlers;
 
 import com.opencsv.bean.exceptionhandler.CsvExceptionHandler;
 import com.opencsv.exceptions.CsvException;
@@ -15,6 +15,10 @@ public class CsvReadCustomExceptionHandler implements CsvExceptionHandler {
     if (exception instanceof CsvRequiredFieldEmptyException) {
       return null;
     }
+    // todo nikola try with custom created exceptions  from CsvException
+    //    if(exception instanceof CsvConstraintViolationException) {
+    //      return null;
+    //    }
     return exception;
   }
 }
