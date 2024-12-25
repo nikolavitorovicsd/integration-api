@@ -1,5 +1,6 @@
 package com.mercans.integration_api.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mercans.integration_api.model.converters.CSVCurrencyConverter;
 import com.mercans.integration_api.model.converters.CSVDateConverter;
 import com.opencsv.bean.CsvBindAndJoinByName;
@@ -10,17 +11,17 @@ import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 // Pojo class used to map CSV lines directly by using opencsv library
 @Getter
 // todo IMPORTANT getter must be present or nothing is showed in response -_-
-// todo IMPORTANT EmployeeRecord fieldType MUST BE MATCHED WITH CONVERTER RETURN TYPE!
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmployeeRecord {
 
-  // todo check different csv formats, they might bass integer or double or null
+  // todo check different csv formats, they might pass integer or double or null
   @CsvBindByName(column = "ACTION", required = true)
   String action;
 
@@ -37,7 +38,8 @@ public class EmployeeRecord {
       // converter = converter = EmployeeCodeConverter.class
       )
   // TODO there is issue with header contract_workStartDate ,its not being read from csv
-  HashSetValuedHashMap<String, String> employeeCode;
+  @JsonDeserialize(as = HashSetValuedHashMap.class)
+  MultiValuedMap<String, String> employeeCode;
 
   // pay
   @CsvBindByName(column = "pay_amount")
@@ -53,13 +55,11 @@ public class EmployeeRecord {
   @CsvCustomBindByName(column = "pay_effectiveTo", converter = CSVDateConverter.class)
   LocalDate payEndDate;
 
-  //
   // compensation
   @CsvBindByName(column = "compensation_amount")
   @CsvNumber("#")
   Double compensationAmount;
 
-  //
   @CsvCustomBindByName(column = "compensation_currency", converter = CSVCurrencyConverter.class)
   Currency compensationCurrency;
 

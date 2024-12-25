@@ -1,7 +1,6 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.model.EmployeeRecord;
-import jakarta.validation.ValidationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -44,24 +43,25 @@ public class SpringBatchConfiguration {
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, EmployeeRecord>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
-        .faultTolerant()
-        .skip(ValidationException.class)
-        .skipLimit(skipLimit)
-        .skipPolicy(
-            (t, skipCount) -> {
-              if (t.getCause() instanceof ValidationException) {
-                return skipCount < skipLimit;
-              }
-              return false;
-            })
+        //        .faultTolerant()
+        //        .skip(ValidationException.class)
+        //        .skipLimit(skipLimit)
+        //        .skipPolicy(
+        //            (t, skipCount) -> {
+        //              if (t.getCause() instanceof ValidationException) {
+        //                return skipCount < skipLimit;
+        //              }
+        //              return false;
+        //            })
         .processor(jsonProcessor)
-        .faultTolerant()
-        .skip(ValidationException.class)
-        .skipLimit(skipLimit)
+        //        .faultTolerant()
+        //        .skip(ValidationException.class)
+        //        .skipLimit(skipLimit)
         .writer(jsonWriter)
-        .faultTolerant()
-        .skip(ValidationException.class) // skip all rows that cause ValidationException
-        .skipLimit(skipLimit) // for now skip limit is higher than anticipated csv lines count
+        //        .faultTolerant()
+        //        .skip(ValidationException.class) // skip all rows that cause ValidationException
+        //        .skipLimit(skipLimit) // for now skip limit is higher than anticipated csv lines
+        // count
         // todo add skip listener to collect all skipped rows
         .build();
   }

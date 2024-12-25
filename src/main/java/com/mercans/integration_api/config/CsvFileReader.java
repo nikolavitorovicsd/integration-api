@@ -47,8 +47,8 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
               .withType(EmployeeRecord.class)
               .withIgnoreLeadingWhiteSpace(true) // handle white spaces in csv
               .withExceptionHandler(
-                  new CsvReadCustomExceptionHandler()) // handle all kinds of exceptions that should
-              // be skipped in this class
+                  new CsvReadCustomExceptionHandler()) // handle all kinds of CSV exceptions during
+              // read
               .build();
 
       csvIterator = csvToBean.iterator();

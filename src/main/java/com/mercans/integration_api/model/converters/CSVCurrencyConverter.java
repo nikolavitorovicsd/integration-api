@@ -11,7 +11,7 @@ public class CSVCurrencyConverter extends AbstractBeanField<Currency, String> {
   @Override
   protected Currency convert(String value) {
     try {
-      var enumName = value.toString().toUpperCase();
+      var enumName = value.toUpperCase();
       return Currency.valueOf(enumName);
     } catch (IllegalArgumentException | NullPointerException exception) {
       throw new CsvException(String.format("CONVERTER Invalid currency format '%s'", value));
