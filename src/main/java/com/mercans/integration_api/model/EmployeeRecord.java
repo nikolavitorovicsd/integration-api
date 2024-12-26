@@ -15,24 +15,21 @@ import lombok.NoArgsConstructor;
 
 // Pojo class used to map CSV lines directly by using opencsv library
 // required fields which absence will lead to skipping such employee are: 'ACTION','worker_name',
-// 'contract_workStartDate'
-// everything else will be handled in batch processor according to action type
+// 'contract_workStartDate'. If any of these are missing or have improper format, we skip the row
+// during batch read
+// everything else will be handled in batch processor according to action type.
+// converter + required field of @Csv annotation handles skipping process
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmployeeRecord {
 
+  // required data
   @CsvCustomBindByName(column = "ACTION", converter = CSVActionEnumConverter.class, required = true)
   Action action;
 
   @CsvBindByName(column = "worker_name", required = true)
   String employeeName;
-
-  @CsvCustomBindByName(column = "worker_gender", converter = CSVGenderEnumConverter.class)
-  Gender employeeGender;
-
-  @CsvBindByName(column = "contract_workerId")
-  String employeeCode; // no need to handle here, handle during processing
 
   @CsvCustomBindByName(
       column = "contract_workStartDate",
@@ -40,8 +37,16 @@ public class EmployeeRecord {
       required = true)
   LocalDate employeeContractStartDate;
 
+  // not required data
+
+  @CsvCustomBindByName(column = "worker_gender", converter = CSVGenderEnumConverter.class)
+  Gender employeeGender;
+
+  @CsvBindByName(column = "contract_workerId")
+  String employeeCode;
+
   @CsvBindByName(column = "contract_endDate")
-  String employeeContractEndDate; // no need to handle here, handle during processing
+  String employeeContractEndDate;
 
   // pay
   @CsvBindByName(column = "pay_amount")
@@ -70,9 +75,4 @@ public class EmployeeRecord {
 
   @CsvCustomBindByName(column = "compensation_effectiveTo", converter = CSVDateConverter.class)
   LocalDate compensationEndDate;
-
-  // for removal
-  // todo remove: added to check what are other headers
-  //  @CsvBindAndJoinByName(column = ".*", elementType = String.class)
-  //  private MultiValuedMap<String, String> theRest;
 }
