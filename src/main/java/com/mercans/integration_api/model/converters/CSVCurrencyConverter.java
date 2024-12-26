@@ -1,6 +1,6 @@
 package com.mercans.integration_api.model.converters;
 
-import com.mercans.integration_api.model.Currency;
+import com.mercans.integration_api.model.enums.Currency;
 import com.opencsv.bean.AbstractBeanField;
 import com.opencsv.exceptions.CsvException;
 import lombok.SneakyThrows;

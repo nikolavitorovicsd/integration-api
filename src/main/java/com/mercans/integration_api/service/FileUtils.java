@@ -27,9 +27,6 @@ public class FileUtils {
       while ((length = fileInputStream.read(buffer)) > 0) {
         gzipOutputStream.write(buffer, 0, length);
       }
-
-      //            gzipOutputStream.finish();  // Finish the compression todo check if this is
-      // needed
     }
   }
 

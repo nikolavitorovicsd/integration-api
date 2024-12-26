@@ -1,11 +1,11 @@
-package com.mercans.integration_api.model;
+package com.mercans.integration_api.model.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import static java.util.stream.Collectors.toMap;
+
 import jakarta.validation.ValidationException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +18,10 @@ public enum Action {
   TERMINATE("delete");
 
   private static final Map<String, Action> MAP =
-      Stream.of(Action.values()).collect(Collectors.toMap(Enum::name, Function.identity()));
+      Stream.of(Action.values()).collect(toMap(value -> value.clientValue, Function.identity()));
 
-  private final String value;
+  private final String clientValue;
 
-  @JsonCreator
   public static Action fromClientString(String value) {
     var lowerCaseValue = value.toLowerCase();
     return Optional.ofNullable(MAP.get(lowerCaseValue))

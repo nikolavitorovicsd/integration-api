@@ -1,5 +1,6 @@
 package com.mercans.integration_api.model;
 
+import com.mercans.integration_api.model.enums.Currency;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.Builder;

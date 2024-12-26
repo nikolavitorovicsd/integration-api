@@ -71,6 +71,7 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   @Override
   public EmployeeRecord read() {
+    // can add log but would be to much as its 1by1
     if (csvIterator.hasNext()) {
       return csvIterator.next();
     }

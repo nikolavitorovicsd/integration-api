@@ -1,6 +1,7 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.model.EmployeeRecord;
+import com.mercans.integration_api.model.ProcessedEmployeeRecord;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -41,7 +42,7 @@ public class SpringBatchConfiguration {
       @Value("${integration.chunk-size}") int chunkSize,
       @Value("${integration.skip-limit}") int skipLimit) {
     return new StepBuilder("readCsvStep", jobRepository)
-        .<EmployeeRecord, EmployeeRecord>chunk(chunkSize, platformTransactionManager)
+        .<EmployeeRecord, ProcessedEmployeeRecord>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
         //        .faultTolerant()
         //        .skip(ValidationException.class)

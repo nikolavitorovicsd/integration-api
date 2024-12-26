@@ -1,45 +1,47 @@
 package com.mercans.integration_api.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.mercans.integration_api.model.converters.CSVActionEnumConverter;
 import com.mercans.integration_api.model.converters.CSVCurrencyConverter;
 import com.mercans.integration_api.model.converters.CSVDateConverter;
-import com.opencsv.bean.CsvBindAndJoinByName;
-import com.opencsv.bean.CsvBindByName;
-import com.opencsv.bean.CsvCustomBindByName;
-import com.opencsv.bean.CsvNumber;
+import com.mercans.integration_api.model.converters.CSVGenderEnumConverter;
+import com.mercans.integration_api.model.enums.Action;
+import com.mercans.integration_api.model.enums.Currency;
+import com.mercans.integration_api.model.enums.Gender;
+import com.opencsv.bean.*;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 // Pojo class used to map CSV lines directly by using opencsv library
+// required fields which absence will lead to skipping such employee are: 'ACTION','worker_name',
+// 'contract_workStartDate'
+// everything else will be handled in batch processor according to action type
 @Getter
-// todo IMPORTANT getter must be present or nothing is showed in response -_-
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmployeeRecord {
 
-  // todo check different csv formats, they might pass integer or double or null
-  @CsvBindByName(column = "ACTION", required = true)
-  String action;
+  @CsvCustomBindByName(column = "ACTION", converter = CSVActionEnumConverter.class, required = true)
+  Action action;
 
   @CsvBindByName(column = "worker_name", required = true)
   String employeeName;
 
-  // todo remove: added to check what are other headers
-  //  @CsvBindAndJoinByName(column = ".*", elementType = String.class)
-  //  private MultiValuedMap<String, String> theRest;
+  @CsvCustomBindByName(column = "worker_gender", converter = CSVGenderEnumConverter.class)
+  Gender employeeGender;
 
-  @CsvBindAndJoinByName(
-      column = "contract_work.*", // this will map both contract_workStartDate abd contract_workerId
-      elementType = String.class
-      // converter = converter = EmployeeCodeConverter.class
-      )
-  // TODO there is issue with header contract_workStartDate ,its not being read from csv
-  @JsonDeserialize(as = HashSetValuedHashMap.class)
-  MultiValuedMap<String, String> employeeCode;
+  @CsvBindByName(column = "contract_workerId")
+  String employeeCode; // no need to handle here, handle during processing
+
+  @CsvCustomBindByName(
+      column = "contract_workStartDate",
+      converter = CSVDateConverter.class,
+      required = true)
+  LocalDate employeeContractStartDate;
+
+  @CsvBindByName(column = "contract_endDate")
+  String employeeContractEndDate; // no need to handle here, handle during processing
 
   // pay
   @CsvBindByName(column = "pay_amount")
@@ -64,8 +66,13 @@ public class EmployeeRecord {
   Currency compensationCurrency;
 
   @CsvCustomBindByName(column = "compensation_effectiveFrom", converter = CSVDateConverter.class)
-  Object compensationStartDate;
+  LocalDate compensationStartDate;
 
   @CsvCustomBindByName(column = "compensation_effectiveTo", converter = CSVDateConverter.class)
-  Object compensationEndDate;
+  LocalDate compensationEndDate;
+
+  // for removal
+  // todo remove: added to check what are other headers
+  //  @CsvBindAndJoinByName(column = ".*", elementType = String.class)
+  //  private MultiValuedMap<String, String> theRest;
 }
