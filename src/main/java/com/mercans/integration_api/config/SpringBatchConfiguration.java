@@ -1,6 +1,8 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.config.listeners.CompressJsonAndRemoveAfterJobListener;
+import com.mercans.integration_api.config.listeners.RemoveUploadedCsvFileAfterJobListener;
 import com.mercans.integration_api.model.EmployeeRecord;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -25,10 +27,9 @@ public class SpringBatchConfiguration {
       CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener) {
     return new JobBuilder("readCsvJob", jobRepository)
         .start(readCsvStep)
-        // todo better use steps insted of listeners as they somehow are in different order than
-        // registered
-        .listener(removeUploadedCsvFileAfterJobListener)
-        .listener(compressJsonAndRemoveAfterJobListener)
+        // do not change order, last registered listener is actually called first
+        .listener(compressJsonAndRemoveAfterJobListener) // called second
+        .listener(removeUploadedCsvFileAfterJobListener) // called first
         .build();
   }
 

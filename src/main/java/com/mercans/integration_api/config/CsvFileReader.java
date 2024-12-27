@@ -1,6 +1,7 @@
 package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CSV_FILE_PATH;
+import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_STATISTICS;
 
 import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHandler;
 import com.mercans.integration_api.model.EmployeeRecord;
@@ -23,13 +24,17 @@ import org.springframework.stereotype.Component;
 public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   private final String csvFileName;
+  private final BatchJobStatistics batchJobStatistics;
 
   private Iterator<EmployeeRecord> csvIterator;
   private Reader fileReader;
 
   public CsvFileReader(
-      @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName) {
+      @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName,
+      @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
+          BatchJobStatistics batchJobStatistics) {
     this.csvFileName = csvFileName;
+    this.batchJobStatistics = batchJobStatistics;
   }
 
   // this method maps csv lines directly to java pojo class using opencsv lib
@@ -68,6 +73,7 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
   @Override
   public EmployeeRecord read() {
     if (csvIterator.hasNext()) {
+      batchJobStatistics.updateCsvFileReadLinesCount(); // increase csv read lines count
       return csvIterator.next();
     }
     return null;

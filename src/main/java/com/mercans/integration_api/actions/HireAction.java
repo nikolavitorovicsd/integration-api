@@ -13,6 +13,7 @@ import lombok.Builder;
 public record HireAction(
     @NotNull String employeeCode,
     @NotNull LocalDate employeeHireDate,
+    @NotNull String employeeFullName,
     Gender employeGender,
     Set<@Valid PayComponent> payComponents)
     implements Action {

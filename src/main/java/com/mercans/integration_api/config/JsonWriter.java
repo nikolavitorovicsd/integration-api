@@ -26,17 +26,21 @@ public class JsonWriter implements ItemWriter<Action> {
   private final String targetJsonPath;
   private final String csvFileName;
   private final UUID jsonResponseUUID;
+  private final BatchJobStatistics batchJobStatistics;
   private final ObjectMapper objectMapper;
 
   public JsonWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_NAME + "']}") String csvFileName,
       @Value("#{jobParameters['" + BATCH_JOB_JSON_UUID + "']}") UUID jsonResponseUUID,
+      @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
+          BatchJobStatistics batchJobStatistics,
       ObjectMapper objectMapper) {
 
     this.targetJsonPath = targetJsonPath;
     this.csvFileName = csvFileName;
     this.jsonResponseUUID = jsonResponseUUID;
+    this.batchJobStatistics = batchJobStatistics;
     this.objectMapper = objectMapper;
   }
 
@@ -50,7 +54,7 @@ public class JsonWriter implements ItemWriter<Action> {
     String jsonFileName = targetJsonPath.substring(targetJsonPath.lastIndexOf("/") + 1);
 
     log.info(
-        "Writing {} lines from uploaded CSV file '{}' to JSON file '{}'",
+        "Writing chunk of '{}' lines from uploaded CSV file '{}' to JSON file '{}'",
         chunk.size(),
         csvFileName,
         jsonFileName);
@@ -64,6 +68,16 @@ public class JsonWriter implements ItemWriter<Action> {
 
     // write json to file
     objectMapper.writeValue(jsonFilePath, jsonResponse);
+
+    batchJobStatistics.updateJsonFileWrittenLinesCount(
+        chunk.size()); // increase csv read lines count
+
+    if (chunk.isEnd()) {
+      log.info(
+          "Written '{}' lines of total '{}'.",
+          batchJobStatistics.getJsonFileLinesCount(),
+          batchJobStatistics.getCsvFileReadLinesCount());
+    }
   }
 
   private JsonResponse getOrCreateJson(File jsonFilePath) throws IOException {

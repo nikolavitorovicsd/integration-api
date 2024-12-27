@@ -76,6 +76,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     String employeeCode =
         Optional.ofNullable((String) employeeRecord.getEmployeeCode())
             .orElseGet(() -> getEmployeeCodeFromStartDate(hireDate));
+    String employeeFullName = (String) employeeRecord.getEmployeeName();
 
     Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getPayCurrency(), true);
 
@@ -84,6 +85,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     return HireAction.builder()
         .employeeCode(employeeCode)
         .employeeHireDate(hireDate)
+        .employeeFullName(employeeFullName)
         .employeGender(employeeGender)
         .payComponents(components)
         .build();
@@ -93,11 +95,16 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     if (isNull(employeeRecord.getEmployeeCode())) {
       throw new UnskippableCsvException("Missing 'employeeCode' for 'CHANGE' action");
     }
+    String employeeFullName = (String) employeeRecord.getEmployeeName();
     Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getPayCurrency(), true);
 
     var components = buildPayComponents(employeeRecord);
 
-    return ChangeAction.builder().employeGender(employeeGender).payComponents(components).build();
+    return ChangeAction.builder()
+        .employeeFullName(employeeFullName)
+        .employeGender(employeeGender)
+        .payComponents(components)
+        .build();
   }
 
   private Action buildTerminateAction(EmployeeRecord employeeRecord)
