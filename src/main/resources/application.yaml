@@ -6,7 +6,7 @@ spring:
     username: user
     password: pass
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # todo remove , its redundant
   batch:
     job:
       enabled: false
@@ -16,6 +16,9 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  flyway:
+    locations:
+      - classpath:/db/migration
 server:
   port: 8080
   shutdown: GRACEFUL
@@ -24,14 +27,7 @@ server:
     mime-types: application/json
     min-response-size: 1
 
-
+# custom batch config
 integration:
   chunk-size: 300
   skip-limit: 100000 # 100k rows
-
-
-  # todo THINK ABOUT COMPRESSION LOGIC
-  # Enable response compression
-#  server.compression.enabled=true
-#  server.compression.mime-types=application/json,application/xml,text/html,text/plain
-#  server.compression.min-response-size=1024

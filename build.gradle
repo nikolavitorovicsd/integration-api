@@ -23,14 +23,21 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.postgresql:postgresql:42.7.4'
-
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
     // to work with CSV file and map fields directly to pojos
     implementation 'com.opencsv:opencsv:5.9'
 
+    // db
+    implementation 'org.postgresql:postgresql:42.7.2'
+    implementation 'org.flywaydb:flyway-core' // this must be present for flyway to work
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.1.0' // this must be present for flyway to work
+
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+
+    // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
