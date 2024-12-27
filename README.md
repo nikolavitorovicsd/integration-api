@@ -2,6 +2,7 @@
 
 1. Run docker-compose.yaml file
 2. Write in terminal: ./gradlew bootRun
+3. Flyway will pick up all flyway migration scripts and create tables in db (If you modify flyway script after running the application, you should repeat previous steps in order to apply changes otherwise you will get 'Migration checksum mismatch' error )
 
 # How to use the app:
 
