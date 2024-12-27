@@ -4,8 +4,8 @@ import static com.mercans.integration_api.constants.GlobalConstants.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mercans.integration_api.model.ProcessedEmployeeRecord;
-import com.mercans.integration_api.service.FileUtils;
+import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 @JobScope
 @Slf4j
-public class JsonWriter implements ItemWriter<ProcessedEmployeeRecord> {
+public class JsonWriter implements ItemWriter<Action> {
 
   private final String targetJsonPath;
   private final String csvFileName;
@@ -38,7 +38,7 @@ public class JsonWriter implements ItemWriter<ProcessedEmployeeRecord> {
 
   // this method will append csv lines in chunks to the same json file
   @Override
-  public void write(Chunk<? extends ProcessedEmployeeRecord> chunk) throws IOException {
+  public void write(Chunk<? extends Action> chunk) throws IOException {
     // create directory if missing
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
@@ -52,7 +52,7 @@ public class JsonWriter implements ItemWriter<ProcessedEmployeeRecord> {
 
     File jsonFilePath = new File(targetJsonPath);
 
-    List<ProcessedEmployeeRecord> existingRequests = new ArrayList<>();
+    List<Action> existingRequests = new ArrayList<>();
 
     if (jsonFilePath.exists()) {
       existingRequests = objectMapper.readValue(jsonFilePath, new TypeReference<>() {});

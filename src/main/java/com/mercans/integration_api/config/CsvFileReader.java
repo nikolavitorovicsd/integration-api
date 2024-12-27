@@ -26,15 +26,12 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
   private final String csvFileName;
 
   private Iterator<EmployeeRecord> csvIterator;
-
-  private final Validator validator;
   private Reader fileReader;
 
   public CsvFileReader(
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName,
       Validator validator) {
     this.csvFileName = csvFileName;
-    this.validator = validator;
   }
 
   // this method maps csv lines directly to java pojo class using opencsv lib
@@ -53,7 +50,8 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
       csvIterator = csvToBean.iterator();
     } catch (IOException e) {
-      throw new RuntimeException(String.format("File with name '%s' doesn't exist!", csvFileName));
+      throw new RuntimeException(
+          String.format("File with employeeName '%s' doesn't exist!", csvFileName));
     }
   }
 
@@ -71,7 +69,6 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   @Override
   public EmployeeRecord read() {
-    // can add log but would be to much as its 1by1
     if (csvIterator.hasNext()) {
       return csvIterator.next();
     }

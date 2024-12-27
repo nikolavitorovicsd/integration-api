@@ -2,7 +2,7 @@ package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_JSON_FILE_PATH;
 
-import com.mercans.integration_api.service.FileUtils;
+import com.mercans.integration_api.utils.FileUtils;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;

@@ -4,6 +4,7 @@ import static com.mercans.integration_api.constants.GlobalConstants.*;
 
 import com.mercans.integration_api.constants.GlobalConstants;
 import com.mercans.integration_api.exception.JsonFileNotFoundException;
+import com.mercans.integration_api.utils.FileUtils;
 import java.io.*;
 import java.util.Date;
 import java.util.Optional;
@@ -27,9 +28,11 @@ public class CsvReadService {
   private final Job readCsvJob;
   private final FileService fileService;
 
-  // todo nikola batching should be done, from file name that will be stored in app memory and after
+  // todo nikola batching should be done, from file employeeName that will be stored in app memory
+  // and after
   // job is completed file
-  //  should be deleted but there should be result json saved to db with uuiid and file name that
+  //  should be deleted but there should be result json saved to db with uuiid and file employeeName
+  // that
   // was passed and date
   //  and spring batch shouldnt save anything when returning result, it should return uuid of json
   // saved to db so user can fetch it

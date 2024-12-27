@@ -1,14 +1,6 @@
 package com.mercans.integration_api.model;
 
-import com.mercans.integration_api.model.converters.CSVActionEnumConverter;
-import com.mercans.integration_api.model.converters.CSVCurrencyConverter;
-import com.mercans.integration_api.model.converters.CSVDateConverter;
-import com.mercans.integration_api.model.converters.CSVGenderEnumConverter;
-import com.mercans.integration_api.model.enums.Action;
-import com.mercans.integration_api.model.enums.Currency;
-import com.mercans.integration_api.model.enums.Gender;
 import com.opencsv.bean.*;
-import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,55 +16,50 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EmployeeRecord {
 
-  // required data
-  @CsvCustomBindByName(column = "ACTION", converter = CSVActionEnumConverter.class, required = true)
-  Action action;
+  // todo NOTE in order to do validation in 1 place, i will skipp all converting in this bean and do
 
-  @CsvBindByName(column = "worker_name", required = true)
-  String employeeName;
+  @CsvBindByName(column = "ACTION")
+  Object action;
 
-  @CsvCustomBindByName(
-      column = "contract_workStartDate",
-      converter = CSVDateConverter.class,
-      required = true)
-  LocalDate employeeContractStartDate;
+  @CsvBindByName(column = "worker_name")
+  Object employeeName;
 
-  // not required data
+  @CsvBindByName(column = "contract_workStartDate")
+  Object employeeContractStartDate;
 
-  @CsvCustomBindByName(column = "worker_gender", converter = CSVGenderEnumConverter.class)
-  Gender employeeGender;
+  @CsvBindByName(column = "worker_gender")
+  Object employeeGender;
 
   @CsvBindByName(column = "contract_workerId")
-  String employeeCode;
+  Object employeeCode;
 
   @CsvBindByName(column = "contract_endDate")
-  String employeeContractEndDate;
+  Object employeeContractEndDate;
 
   // pay
   @CsvBindByName(column = "pay_amount")
-  @CsvNumber("#")
-  Double payAmount;
+  //  @CsvNumber("#")
+  Object payAmount;
 
-  @CsvCustomBindByName(column = "pay_currency", converter = CSVCurrencyConverter.class)
-  Currency payCurrency;
+  @CsvBindByName(column = "pay_currency")
+  Object payCurrency;
 
-  @CsvCustomBindByName(column = "pay_effectiveFrom", converter = CSVDateConverter.class)
-  LocalDate payStartDate;
+  @CsvBindByName(column = "pay_effectiveFrom")
+  Object payStartDate;
 
-  @CsvCustomBindByName(column = "pay_effectiveTo", converter = CSVDateConverter.class)
-  LocalDate payEndDate;
+  @CsvBindByName(column = "pay_effectiveTo")
+  Object payEndDate;
 
   // compensation
   @CsvBindByName(column = "compensation_amount")
-  @CsvNumber("#")
-  Double compensationAmount;
+  Object compensationAmount;
 
-  @CsvCustomBindByName(column = "compensation_currency", converter = CSVCurrencyConverter.class)
-  Currency compensationCurrency;
+  @CsvBindByName(column = "compensation_currency")
+  Object compensationCurrency;
 
-  @CsvCustomBindByName(column = "compensation_effectiveFrom", converter = CSVDateConverter.class)
-  LocalDate compensationStartDate;
+  @CsvBindByName(column = "compensation_effectiveFrom")
+  Object compensationStartDate;
 
-  @CsvCustomBindByName(column = "compensation_effectiveTo", converter = CSVDateConverter.class)
-  LocalDate compensationEndDate;
+  @CsvBindByName(column = "compensation_effectiveTo")
+  Object compensationEndDate;
 }

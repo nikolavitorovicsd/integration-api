@@ -1,20 +1,20 @@
-package com.mercans.integration_api.model.converters;
+package com.mercans.integration_api.utils;
 
-import com.opencsv.bean.AbstractBeanField;
-import com.opencsv.exceptions.CsvException;
+import com.mercans.integration_api.constants.GlobalConstants;
+import com.mercans.integration_api.exception.UnskippableCsvException;
 import jakarta.validation.ValidationException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 
-public class CSVDateConverter extends AbstractBeanField<LocalDate, String> {
+@UtilityClass
+public class DateUtils {
 
-  @SneakyThrows
-  @Override
-  protected LocalDate convert(String value) {
+  public LocalDate getLocalDateFromCsvObject(Object csvValue, boolean skippable) {
     try {
       // todo can be extracted and reused in util class
+      String value = csvValue.toString();
       StringBuilder formattedDate = new StringBuilder();
 
       String day;
@@ -38,10 +38,14 @@ public class CSVDateConverter extends AbstractBeanField<LocalDate, String> {
 
       formattedDate.append(day).append("-").append(month).append("-").append(year);
 
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GlobalConstants.GLOBAL_DATE_FORMAT);
       return LocalDate.parse(formattedDate, formatter);
     } catch (DateTimeParseException | NullPointerException | ValidationException e) {
-      throw new CsvException(String.format(e.getMessage()));
+      if (skippable) {
+        return null;
+      }
+      throw new UnskippableCsvException(
+          String.format("Csv date '%s' couldn't be parsed", csvValue));
     }
   }
 }

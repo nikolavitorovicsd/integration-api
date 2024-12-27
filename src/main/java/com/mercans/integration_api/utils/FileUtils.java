@@ -1,4 +1,4 @@
-package com.mercans.integration_api.service;
+package com.mercans.integration_api.utils;
 
 import java.io.*;
 import java.nio.file.Files;

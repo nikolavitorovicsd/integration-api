@@ -1,8 +1,8 @@
 package com.mercans.integration_api.model.enums;
 
-import static io.micrometer.common.util.StringUtils.isEmpty;
 import static java.util.stream.Collectors.toMap;
 
+import com.mercans.integration_api.exception.UnskippableCsvException;
 import jakarta.validation.ValidationException;
 import java.util.Map;
 import java.util.Optional;
@@ -22,13 +22,23 @@ public enum Gender {
 
   private final String clientValue;
 
-  public static Gender fromClientString(String value) {
-    if (isEmpty(value)) {
-      return null; // its nullable in db
-    }
+  public static Gender fromCsvValue(String value) throws ValidationException {
     var lowerCaseValue = value.toLowerCase();
     return Optional.ofNullable(MAP.get(lowerCaseValue))
         .orElseThrow(
             () -> new ValidationException(String.format("Unsupported Gender type '%s'", value)));
+  }
+
+  public static Gender getGenderFromCsvObject(Object csvValue, boolean skippable) {
+    try {
+      var enumName = csvValue.toString();
+      return fromCsvValue(enumName);
+    } catch (IllegalArgumentException | ValidationException | NullPointerException exception) {
+      if (skippable) {
+        return null;
+      }
+      throw new UnskippableCsvException(
+          String.format("Csv value '%s' couldn't be parsed to Gender", csvValue));
+    }
   }
 }

@@ -1,20 +1,21 @@
 package com.mercans.integration_api.model.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import jakarta.validation.ValidationException;
+import com.mercans.integration_api.exception.UnskippableCsvException;
 
 public enum Currency {
   USD,
   EUR;
 
-  @JsonCreator
-  public static Currency fromClientString(
-      String value) { // todo think about receiveing an object instead of String
+  public static Currency getCurrencyFromCsvObject(Object csvValue, boolean skippable) {
     try {
-      var enumName = value.toUpperCase();
+      var enumName = csvValue.toString().toUpperCase();
       return valueOf(enumName);
     } catch (IllegalArgumentException | NullPointerException exception) {
-      throw new ValidationException(String.format("ENUM Invalid currency format '%s'", value));
+      if (skippable) {
+        return null;
+      }
+      throw new UnskippableCsvException(
+          String.format("Csv value '%s' couldn't be parsed to Currency", csvValue));
     }
   }
 }
