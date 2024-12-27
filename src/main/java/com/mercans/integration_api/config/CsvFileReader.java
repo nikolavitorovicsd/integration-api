@@ -6,7 +6,6 @@ import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHand
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import jakarta.validation.Validator;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -29,8 +28,7 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
   private Reader fileReader;
 
   public CsvFileReader(
-      @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName,
-      Validator validator) {
+      @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_PATH + "']}") String csvFileName) {
     this.csvFileName = csvFileName;
   }
 

@@ -1,5 +1,6 @@
 package com.mercans.integration_api.actions;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.mercans.integration_api.model.enums.ActionType;
@@ -12,5 +13,6 @@ import com.mercans.integration_api.model.enums.ActionType;
 })
 public interface Action {
 
+  @JsonIgnore
   ActionType getAction();
 }

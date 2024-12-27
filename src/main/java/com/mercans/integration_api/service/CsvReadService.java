@@ -28,16 +28,6 @@ public class CsvReadService {
   private final Job readCsvJob;
   private final FileService fileService;
 
-  // todo nikola batching should be done, from file employeeName that will be stored in app memory
-  // and after
-  // job is completed file
-  //  should be deleted but there should be result json saved to db with uuiid and file employeeName
-  // that
-  // was passed and date
-  //  and spring batch shouldnt save anything when returning result, it should return uuid of json
-  // saved to db so user can fetch it
-  // todo nikola errors response in json sould probably contain array of employee ids which were
-  // skipped because they were missing some fields with validation message included
   public UUID saveCsvData(MultipartFile file)
       throws JobInstanceAlreadyCompleteException,
           JobExecutionAlreadyRunningException,

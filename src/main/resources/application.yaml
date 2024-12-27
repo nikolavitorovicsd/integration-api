@@ -18,6 +18,12 @@ spring:
       max-request-size: 10MB
 server:
   port: 8080
+  shutdown: GRACEFUL
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 1
+
 
 integration:
   chunk-size: 300

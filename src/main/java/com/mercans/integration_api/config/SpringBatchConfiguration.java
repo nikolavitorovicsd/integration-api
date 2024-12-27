@@ -46,7 +46,7 @@ public class SpringBatchConfiguration {
         .reader(csvFileReader)
         .processor(jsonProcessor)
         .writer(jsonWriter)
-        // todo add skip listener to collect all skipped rows
+        // todo add skip listener to collect all skipped rows and put in errors list in json
         .build();
   }
 }

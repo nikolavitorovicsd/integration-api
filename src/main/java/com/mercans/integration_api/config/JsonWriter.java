@@ -2,14 +2,15 @@ package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.Chunk;
@@ -24,15 +25,18 @@ public class JsonWriter implements ItemWriter<Action> {
 
   private final String targetJsonPath;
   private final String csvFileName;
+  private final UUID jsonResponseUUID;
   private final ObjectMapper objectMapper;
 
   public JsonWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_NAME + "']}") String csvFileName,
+      @Value("#{jobParameters['" + BATCH_JOB_JSON_UUID + "']}") UUID jsonResponseUUID,
       ObjectMapper objectMapper) {
 
     this.targetJsonPath = targetJsonPath;
     this.csvFileName = csvFileName;
+    this.jsonResponseUUID = jsonResponseUUID;
     this.objectMapper = objectMapper;
   }
 
@@ -53,13 +57,27 @@ public class JsonWriter implements ItemWriter<Action> {
 
     File jsonFilePath = new File(targetJsonPath);
 
-    List<Action> existingRequests = new ArrayList<>();
+    JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
 
+    // add chunk to the payload
+    jsonResponse.payload().addAll(chunk.getItems());
+
+    // write json to file
+    objectMapper.writeValue(jsonFilePath, jsonResponse);
+  }
+
+  private JsonResponse getOrCreateJson(File jsonFilePath) throws IOException {
+    JsonResponse jsonResponse;
     if (jsonFilePath.exists()) {
-      existingRequests = objectMapper.readValue(jsonFilePath, new TypeReference<>() {});
+      // this reads data from file if it exists
+      jsonResponse = objectMapper.readValue(jsonFilePath, JsonResponse.class);
+    } else {
+      // this creates a new json file if it doesn't exist
+      // todo finish errors
+      jsonResponse =
+          new JsonResponse(
+              jsonResponseUUID, csvFileName, List.of("FINISH ERRORS"), new ArrayList<>());
     }
-    existingRequests.addAll(chunk.getItems());
-
-    objectMapper.writeValue(jsonFilePath, existingRequests);
+    return jsonResponse;
   }
 }

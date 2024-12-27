@@ -4,9 +4,6 @@ import com.opencsv.bean.exceptionhandler.CsvExceptionHandler;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
-// todo customize all kinds of exceptions regarding issues with csv structure like nummber of
-// fields not matching header
-// todo add aditional handling for all possible issues with CSV (investigate)
 public class CsvReadCustomExceptionHandler implements CsvExceptionHandler {
   @Override
   public CsvException handleException(CsvException exception) throws CsvException {
@@ -15,10 +12,7 @@ public class CsvReadCustomExceptionHandler implements CsvExceptionHandler {
     if (exception instanceof CsvRequiredFieldEmptyException) {
       return null;
     }
-    // todo nikola try with custom created exceptions  from CsvException
-    //    if(exception instanceof CsvConstraintViolationException) {
-    //      return null;
-    //    }
+    // todo keep playing with csv to probe if something fails batch process
     return exception;
   }
 }

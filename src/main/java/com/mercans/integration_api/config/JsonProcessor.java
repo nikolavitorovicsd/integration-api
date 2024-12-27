@@ -172,7 +172,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
   }
 
   private String getEmployeeCodeFromStartDate(LocalDate hireDate) {
-    // todo nikola hardcoded change it
+    // todo nikola hardcoded change it now it looks like "employeeCode": "2022-01-012B",
     return hireDate.toString() + "2B";
   }
 }
