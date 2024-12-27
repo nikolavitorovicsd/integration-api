@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -109,13 +110,15 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             // if termination date fails to convert, we throw unskippable exception
             .map(date -> DateUtils.getLocalDateFromCsvObject(date, false))
             .orElse(LocalDate.now());
+
     return TerminateAction.builder()
         .employeeCode((String) employeeRecord.getEmployeeCode())
         .terminationDate(terminationDate)
         .build();
   }
 
-  private List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
+  private Set<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
+    // pay
     Long payAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), true);
     Currency payCurrency = Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), true);
     LocalDate payStartDate =
@@ -131,6 +134,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             .endDate(payEndDate)
             .build();
 
+    // compensation
     Long compensationAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), true);
     Currency compensationCurrency =
         Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), true);
@@ -150,7 +154,9 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     var components = List.of(payComponent, compensationComponent);
 
     // we validate payComponents and if any have violations we filter them out
-    return components.stream().filter(component -> isEmpty(validator.validate(component))).toList();
+    return components.stream()
+        .filter(component -> isEmpty(validator.validate(component)))
+        .collect(Collectors.toSet());
   }
 
   private Long getLongFromCsvObject(Object payAmount, boolean skippable) {

@@ -42,6 +42,7 @@ public class JsonWriter implements ItemWriter<Action> {
     // create directory if missing
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
+    // todo move this to job param to avoid calling it all the time
     String jsonFileName = targetJsonPath.substring(targetJsonPath.lastIndexOf("/") + 1);
 
     log.info(
