@@ -40,8 +40,8 @@ public class SpringBatchConfiguration {
       CsvFileReader csvFileReader,
       JsonProcessor jsonProcessor,
       JsonWriter jsonWriter,
-      @Value("${integration.chunk-size}") int chunkSize,
-      @Value("${integration.skip-limit}") int skipLimit) { // todo
+      @Value("${batch-config.chunk-size}") int chunkSize,
+      @Value("${batch-config.skip-limit}") int skipLimit) { // todo
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)

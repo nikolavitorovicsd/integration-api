@@ -180,6 +180,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
 
   private String getEmployeeCodeFromStartDate(LocalDate hireDate) {
     // todo nikola hardcoded change it now it looks like "employeeCode": "2022-01-012B",
-    return hireDate.toString() + "2B";
+    // date comes as "2022-01-12", after replace it looks like "20220112", after substring "220112"
+    return hireDate.toString().replace("-", "").substring(2, 8) + "2B";
   }
 }

@@ -31,6 +31,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-core' // this must be present for flyway to work
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.1.0' // this must be present for flyway to work
 
+    // allows informative logs for hibernate queries
+    implementation 'com.github.gavlyukovskiy:datasource-proxy-spring-boot-starter:1.10.0'
+
+
 
     // lombok
     compileOnly 'org.projectlombok:lombok'

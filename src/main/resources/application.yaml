@@ -2,11 +2,9 @@ spring:
   application:
     name: integration-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/integration
+    url: jdbc:postgresql://localhost:5432/integration?rewriteBatchedStatements=true
     username: user
     password: pass
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect # todo remove , its redundant
   batch:
     job:
       enabled: false
@@ -19,6 +17,31 @@ spring:
   flyway:
     locations:
       - classpath:/db/migration
+  jpa:
+    properties:
+      hibernate:
+#      https://vladmihalcea.com/how-to-batch-insert-and-update-statements-with-hibernate/
+#      https://stackoverflow.com/questions/62411431/spring-batch-jpa-bulk-insert-eats-performance-when-using-generationtype-identity?rq=3
+        order_inserts : true # allows to group INSERT statements in batch and speed up insert
+        order_updates: true # allows to group UPDATE statements in batch and speed up insert
+        jdbc:
+          batch_size: 30 # hibernate batch size -> determines how many rows are inserted/updated in bulk
+          batch_versioned_data: true # allows to enable UPDATE batching
+        id:
+          optimizer:
+            pooled:
+              preferred: pooled-lo
+
+# provides nice logging for hibernate with additional information like batch, type, batsh size
+logging:
+  level:
+    net:
+      ttddyy:
+        dsproxy:
+          # uncomment to see more informative logs (batch size, prepared statement etc)
+#          listener: debug
+          listener: info
+
 server:
   port: 8080
   shutdown: GRACEFUL
@@ -27,7 +50,8 @@ server:
     mime-types: application/json
     min-response-size: 1
 
+
 # custom batch config
-integration:
-  chunk-size: 300
+batch-config:
+  chunk-size: 3000 # chunk size which determines how many rows are processed during read/process/write
   skip-limit: 100000 # 100k rows

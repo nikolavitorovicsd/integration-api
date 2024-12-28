@@ -4,7 +4,11 @@ import static com.mercans.integration_api.constants.GlobalConstants.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.actions.HireAction;
+import com.mercans.integration_api.jpa.EmployeeEntity;
+import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.JsonResponse;
+import com.mercans.integration_api.model.enums.ActionType;
 import com.mercans.integration_api.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
@@ -29,19 +33,23 @@ public class JsonWriter implements ItemWriter<Action> {
   private final BatchJobStatistics batchJobStatistics;
   private final ObjectMapper objectMapper;
 
+  private final EmployeeRepository employeeRepository;
+
   public JsonWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_NAME + "']}") String csvFileName,
       @Value("#{jobParameters['" + BATCH_JOB_JSON_UUID + "']}") UUID jsonResponseUUID,
       @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
           BatchJobStatistics batchJobStatistics,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      EmployeeRepository employeeRepository) {
 
     this.targetJsonPath = targetJsonPath;
     this.csvFileName = csvFileName;
     this.jsonResponseUUID = jsonResponseUUID;
     this.batchJobStatistics = batchJobStatistics;
     this.objectMapper = objectMapper;
+    this.employeeRepository = employeeRepository;
   }
 
   // this method will append csv lines in chunks to the same json file
@@ -78,6 +86,25 @@ public class JsonWriter implements ItemWriter<Action> {
           batchJobStatistics.getJsonFileLinesCount(),
           batchJobStatistics.getCsvFileReadLinesCount());
     }
+    // todo add other type of employees
+    var hireEmployees =
+        chunk.getItems().stream()
+            .filter(action -> action.getAction().equals(ActionType.HIRE))
+            .map(HireAction.class::cast)
+            .map(JsonWriter::buildHirePersonEntity)
+            .toList();
+
+    // todo handle if this throws exceptions
+    employeeRepository.saveAll(hireEmployees);
+  }
+
+  private static EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
+    return EmployeeEntity.builder()
+        .employeeCode(hireAction.employeeCode())
+        .employeeHireDate(hireAction.employeeHireDate())
+        .employeeFullName(hireAction.employeeFullName())
+        .employeGender(hireAction.employeGender())
+        .build();
   }
 
   private JsonResponse getOrCreateJson(File jsonFilePath) throws IOException {
