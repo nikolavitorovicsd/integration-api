@@ -15,6 +15,7 @@ public record HireAction(
     @NotNull LocalDate employeeHireDate,
     @NotNull String employeeFullName,
     Gender employeGender,
+    LocalDate employeeBirthDate, // todo add in writter
     Set<@Valid PayComponent> payComponents)
     implements Action {
 
