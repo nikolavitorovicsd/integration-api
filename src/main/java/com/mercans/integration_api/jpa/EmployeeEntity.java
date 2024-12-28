@@ -5,13 +5,18 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "person")
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@Getter
 public class EmployeeEntity {
 
   // spotless:off
@@ -27,7 +32,7 @@ public class EmployeeEntity {
   private BigInteger id;
 
   @NotNull
-  @Column(name = "employee_code")
+  @Column(name = "employee_code", updatable = false)
   private String employeeCode;
 
   @NotNull
@@ -38,7 +43,11 @@ public class EmployeeEntity {
   @Column(name = "full_name")
   private String employeeFullName;
 
-  @Enumerated
   @Column(name = "gender")
+  @Enumerated(EnumType.STRING)
   private Gender employeGender;
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "person_id", nullable = false)
+  private List<SalaryComponentEntity> salaryComponentEntities;
 }

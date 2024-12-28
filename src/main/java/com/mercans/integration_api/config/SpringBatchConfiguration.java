@@ -1,9 +1,11 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.config.listeners.AddStatisticsBeforeJobAndRemoveAfterJobListener;
 import com.mercans.integration_api.config.listeners.CompressJsonAndRemoveAfterJobListener;
 import com.mercans.integration_api.config.listeners.RemoveUploadedCsvFileAfterJobListener;
 import com.mercans.integration_api.model.EmployeeRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+@Slf4j
 @Configuration
 public class SpringBatchConfiguration {
 
@@ -24,12 +27,15 @@ public class SpringBatchConfiguration {
       JobRepository jobRepository,
       Step readCsvStep,
       RemoveUploadedCsvFileAfterJobListener removeUploadedCsvFileAfterJobListener,
-      CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener) {
+      CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener,
+      AddStatisticsBeforeJobAndRemoveAfterJobListener
+          addStatisticsBeforeJobAndRemoveAfterJobListener) {
     return new JobBuilder("readCsvJob", jobRepository)
         .start(readCsvStep)
         // do not change order, last registered listener is actually called first
-        .listener(compressJsonAndRemoveAfterJobListener) // called second
-        .listener(removeUploadedCsvFileAfterJobListener) // called first
+        .listener(compressJsonAndRemoveAfterJobListener) // called third
+        .listener(removeUploadedCsvFileAfterJobListener) // called second
+        .listener(addStatisticsBeforeJobAndRemoveAfterJobListener) // called first
         .build();
   }
 
@@ -45,9 +51,10 @@ public class SpringBatchConfiguration {
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
-        .processor(jsonProcessor)
+        .processor(
+            jsonProcessor) // todo add skip listener to collect all skipped rows DURING PROCESS INTO
+        // JSON ERRORS!!!!
         .writer(jsonWriter)
-        // todo add skip listener to collect all skipped rows and put in errors list in json
         .build();
   }
 }

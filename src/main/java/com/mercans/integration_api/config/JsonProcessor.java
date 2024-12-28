@@ -78,7 +78,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             .orElseGet(() -> getEmployeeCodeFromStartDate(hireDate));
     String employeeFullName = (String) employeeRecord.getEmployeeName();
 
-    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getPayCurrency(), true);
+    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), true);
 
     var components = buildPayComponents(employeeRecord);
 
@@ -96,7 +96,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
       throw new UnskippableCsvException("Missing 'employeeCode' for 'CHANGE' action");
     }
     String employeeFullName = (String) employeeRecord.getEmployeeName();
-    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getPayCurrency(), true);
+    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), true);
 
     var components = buildPayComponents(employeeRecord);
 
@@ -133,6 +133,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     LocalDate payEndDate =
         DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayEndDate(), true);
 
+    // todo can be extracted
     var payComponent =
         PayComponent.builder()
             .amount(payAmount)

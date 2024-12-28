@@ -25,7 +25,7 @@ spring:
         order_inserts : true # allows to group INSERT statements in batch and speed up insert
         order_updates: true # allows to group UPDATE statements in batch and speed up insert
         jdbc:
-          batch_size: 30 # hibernate batch size -> determines how many rows are inserted/updated in bulk
+          batch_size: 50 # hibernate batch size -> determines how many rows are inserted/updated in bulk
           batch_versioned_data: true # allows to enable UPDATE batching
         id:
           optimizer:
