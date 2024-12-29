@@ -7,11 +7,15 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "salary_component")
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class SalaryComponentEntity {
 
   @Id

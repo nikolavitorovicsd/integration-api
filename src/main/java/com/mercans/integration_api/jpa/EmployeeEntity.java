@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "person")
@@ -17,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Getter
+@EqualsAndHashCode
 public class EmployeeEntity {
 
   // spotless:off
@@ -47,7 +45,7 @@ public class EmployeeEntity {
   @Enumerated(EnumType.STRING)
   private Gender employeGender;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @JoinColumn(name = "person_id", nullable = false)
   private List<SalaryComponentEntity> salaryComponentEntities;
 }

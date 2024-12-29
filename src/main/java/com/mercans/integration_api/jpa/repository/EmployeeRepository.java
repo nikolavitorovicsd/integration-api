@@ -10,4 +10,7 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, BigInt
 
   @Query(" SELECT em.employeeCode FROM EmployeeEntity em ")
   Set<String> getAllEmployeeCodes();
+
+  @Query(" SELECT em FROM EmployeeEntity em where em.employeeCode = :employeeCoded ")
+  EmployeeEntity getEmployeeByEmployeeCode(String employeeCoded);
 }

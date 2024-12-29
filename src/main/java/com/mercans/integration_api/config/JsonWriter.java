@@ -1,13 +1,16 @@
 package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.*;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.actions.ChangeAction;
 import com.mercans.integration_api.actions.HireAction;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
+import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.enums.ActionType;
@@ -55,6 +58,8 @@ public class JsonWriter implements ItemWriter<Action> {
   // this method will append csv lines in chunks to the same json file
   @Override
   public void write(Chunk<? extends Action> chunk) throws IOException {
+    long startTime = System.currentTimeMillis();
+
     // create directory if missing
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
@@ -67,32 +72,6 @@ public class JsonWriter implements ItemWriter<Action> {
         csvFileName,
         jsonFileName);
 
-    File jsonFilePath = new File(targetJsonPath);
-
-    JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
-
-    // todo finish logic
-    /**
-     * // todo we dont care about duplicate terminate/change update operations // TERMINATE/CHANGE
-     * will be added here var updateOperations = new ArrayList<Action>();
-     *
-     * <p>List terminateActions = new ArrayList<Action>(); List changeActions = new
-     * ArrayList<Action>();
-     *
-     * <p>// todo we !!! about !!! duplicate HIRE insert operations and should skip them if any in
-     * batches
-     *
-     * <p>// HIRE // insert operations should be unique as a whole, means no duplicates (mulitple
-     * same rows should be avoided by using set) // if there are 2 HIRE operations that have same
-     * employeeCode but other fields are different, we should put that one in errors Set
-     * insertOperations = new HashSet<Action>();
-     *
-     * <p>chunk.forEach(action -> { switch (action.getAction()) { case TERMINATE ->
-     * terminateActions.add(action); case CHANGE -> changeActions.add(action); case HIRE ->
-     * insertOperations.add(action); } });
-     */
-
-    //  THIS GOES INTO DB
 
     var employeeCodesThatExistInDb = batchJobStatistics.getEmployeeCodesThatExistInDb();
     // todo add other type of employees
@@ -100,38 +79,32 @@ public class JsonWriter implements ItemWriter<Action> {
         chunk.getItems().stream()
             .filter(action -> action.getAction().equals(ActionType.HIRE))
             .map(HireAction.class::cast)
-            // check if exists in db, if it does, skipp it
-            .map(
-                action -> {
-                  // if employee exists already in  db, add it to error and skip it
-                  if (employeeCodesThatExistInDb.contains(action.employeeCode())) {
-                    Map<String, Action> innerMap =
-                        jsonResponse
-                            .errors()
-                            .computeIfAbsent(action.getAction(), k -> new HashMap<>());
-                    // Add the new member to the inner map
-                    innerMap.put(action.employeeCode(), action);
-                    return null;
-                  } else {
-                    // if employee doesn't exist in db, add it BUT ALSO add its employeeCode to the
-                    // Cache Set
-                    employeeCodesThatExistInDb.add(action.employeeCode());
-                    return action;
-                  }
-                })
-            .filter(Objects::nonNull) // we filter null values which will be added to error table
+            .filter(hireAction -> !hireAction.shouldBeSkippedDuringWrite())
             .map(this::buildHirePersonEntity)
             .toList();
 
+    var updateEmployees =
+        chunk.getItems().stream()
+            .filter(action -> action.getAction().equals(ActionType.CHANGE))
+            .map(ChangeAction.class::cast)
+            .toList();
+
+    //
+    File jsonFilePath = new File(targetJsonPath);
+
+    JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
+    // append items to json
     jsonResponse.payload().addAll(chunk.getItems());
-    // write json to file
-    objectMapper.writeValue(jsonFilePath, jsonResponse);
 
-    batchJobStatistics.updateJsonFileWrittenLinesCount(
-        chunk.size()); // increase csv read lines count
+    // increase json write lines count
+    batchJobStatistics.updateJsonFileWrittenLinesCount(chunk.size());
 
-    // saving to db
-    employeeRepository.saveAll(hireEmployees);
+    // saving to db and updating the list of employeeCodes to have it for next chunk
+    if (isNotEmpty(hireEmployees)) {
+      var addedEmployees = employeeRepository.saveAll(hireEmployees);
+      employeeCodesThatExistInDb.addAll(
+          addedEmployees.stream().map(EmployeeEntity::getEmployeeCode).toList());
+    }
 
     // just logging todo check later
     if (chunk.isEnd()) {
@@ -139,7 +112,16 @@ public class JsonWriter implements ItemWriter<Action> {
           "Written '{}' lines to json file  of total '{}' lines from csv file.",
           batchJobStatistics.getJsonFileLinesCount(),
           batchJobStatistics.getCsvFileReadLinesCount());
+      // add all errors in the last chunk
+      jsonResponse =
+          jsonResponse.toBuilder().errors(batchJobStatistics.getErrorStatistics()).build();
     }
+    // update the json file
+    objectMapper.writeValue(jsonFilePath, jsonResponse);
+
+    log.warn(
+        " _________________TIME OF WRITE EXECUTION____________________: {} ms",
+        System.currentTimeMillis() - startTime);
   }
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
@@ -172,8 +154,7 @@ public class JsonWriter implements ItemWriter<Action> {
       jsonResponse = objectMapper.readValue(jsonFilePath, JsonResponse.class);
     } else {
       // this creates a new json file if it doesn't exist
-      jsonResponse =
-          new JsonResponse(jsonResponseUUID, csvFileName, new HashMap<>(), new ArrayList<>());
+      jsonResponse = new JsonResponse(jsonResponseUUID, csvFileName, null, new ArrayList<>());
     }
     return jsonResponse;
   }

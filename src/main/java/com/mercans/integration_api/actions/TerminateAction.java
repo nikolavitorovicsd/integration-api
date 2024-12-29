@@ -5,8 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.*;
 
-@Builder
-public record TerminateAction(@NotNull String employeeCode, @NotNull LocalDate terminationDate)
+@Builder(toBuilder = true)
+public record TerminateAction(
+    @NotNull String employeeCode,
+    @NotNull LocalDate terminationDate,
+    boolean shouldBeSkippedDuringWrite)
     implements Action {
 
   @Override

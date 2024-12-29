@@ -4,6 +4,7 @@ import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CS
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_STATISTICS;
 
 import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHandler;
+import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -45,10 +46,10 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
       CsvToBean<EmployeeRecord> csvToBean =
           new CsvToBeanBuilder<EmployeeRecord>(fileReader)
               .withType(EmployeeRecord.class)
-              .withIgnoreLeadingWhiteSpace(true) // handle white spaces in csv
-              .withExceptionHandler(
-                  new CsvReadCustomExceptionHandler()) // handle all kinds of CSV exceptions during
-              // read
+              // handle white spaces in csv
+              .withIgnoreLeadingWhiteSpace(true)
+              // handle all kinds of CSV exceptions during read
+              .withExceptionHandler(new CsvReadCustomExceptionHandler())
               .build();
 
       csvIterator = csvToBean.iterator();

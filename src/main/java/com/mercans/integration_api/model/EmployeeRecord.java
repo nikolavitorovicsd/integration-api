@@ -1,17 +1,19 @@
 package com.mercans.integration_api.model;
 
 import com.opencsv.bean.*;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
-// NOTE: in order to do validation in 1 place, i will skipp all converting in this bean and do it in batch process step
+// NOTE: in order to do validation in 1 place, i will skipp all converting in this bean and do it in
+// batch process step
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmployeeRecord {
-
+@EqualsAndHashCode
+public class EmployeeRecord implements Serializable {
 
   @CsvBindByName(column = "ACTION")
   Object action;

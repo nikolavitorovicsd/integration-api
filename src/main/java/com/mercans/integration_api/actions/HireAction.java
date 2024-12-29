@@ -9,14 +9,15 @@ import java.time.LocalDate;
 import java.util.Set;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record HireAction(
     @NotNull String employeeCode,
     @NotNull LocalDate employeeHireDate,
     @NotNull String employeeFullName,
     Gender employeGender,
     LocalDate employeeBirthDate, // todo add in writter
-    Set<@Valid PayComponent> payComponents)
+    Set<@Valid PayComponent> payComponents,
+    boolean shouldBeSkippedDuringWrite)
     implements Action {
 
   @Override
