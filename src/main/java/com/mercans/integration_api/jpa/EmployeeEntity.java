@@ -45,6 +45,9 @@ public class EmployeeEntity {
   @Enumerated(EnumType.STRING)
   private Gender employeGender;
 
+  @Column(name = "birth_date")
+  private LocalDate employeeBirthDate;
+
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @JoinColumn(name = "person_id", nullable = false)
   private List<SalaryComponentEntity> salaryComponentEntities;

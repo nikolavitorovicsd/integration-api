@@ -43,7 +43,7 @@ public class FileUtils {
     }
   }
 
-  public static void deleteFile(String pathToFile) {
+  public void deleteFile(String pathToFile) {
     try {
       Path filePath = Paths.get(pathToFile);
       Files.delete(filePath);
@@ -54,10 +54,14 @@ public class FileUtils {
     }
   }
 
-  public static void createDirectoryIfMissing(String directoryPath) {
+  public void createDirectoryIfMissing(String directoryPath) {
     File directory = new File(directoryPath);
     if (!directory.exists()) {
       directory.mkdirs();
     }
+  }
+
+  public String getFileNameWithFormat(String filePath) {
+    return filePath.substring(filePath.lastIndexOf("/") + 1);
   }
 }

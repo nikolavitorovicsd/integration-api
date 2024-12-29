@@ -1,4 +1,4 @@
-package com.mercans.integration_api.actions;
+package com.mercans.integration_api.model.actions;
 
 import com.mercans.integration_api.model.enums.ActionType;
 import jakarta.validation.constraints.NotNull;
@@ -7,8 +7,8 @@ import lombok.*;
 
 @Builder(toBuilder = true)
 public record TerminateAction(
-    @NotNull String employeeCode,
-    @NotNull LocalDate terminationDate,
+    @NotNull(message = "employeeCode must not be null") String employeeCode,
+    @NotNull(message = "terminationDate must not be null") LocalDate terminationDate,
     boolean shouldBeSkippedDuringWrite)
     implements Action {
 

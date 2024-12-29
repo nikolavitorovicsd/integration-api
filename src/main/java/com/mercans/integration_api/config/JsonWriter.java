@@ -4,15 +4,15 @@ import static com.mercans.integration_api.constants.GlobalConstants.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mercans.integration_api.actions.Action;
-import com.mercans.integration_api.actions.ChangeAction;
-import com.mercans.integration_api.actions.HireAction;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.model.PayComponent;
+import com.mercans.integration_api.model.actions.Action;
+import com.mercans.integration_api.model.actions.ChangeAction;
+import com.mercans.integration_api.model.actions.HireAction;
 import com.mercans.integration_api.model.enums.ActionType;
 import com.mercans.integration_api.utils.FileUtils;
 import java.io.File;
@@ -55,25 +55,24 @@ public class JsonWriter implements ItemWriter<Action> {
     this.employeeRepository = employeeRepository;
   }
 
-  // this method will append csv lines in chunks to the same json file
+  // this method will append csv lines in chunks to the same json file and in same time save/update
+  // data to db
   @Override
   public void write(Chunk<? extends Action> chunk) throws IOException {
-    long startTime = System.currentTimeMillis();
-
     // create directory if missing
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
-    // todo move this to job param to avoid calling it all the time
-    String jsonFileName = targetJsonPath.substring(targetJsonPath.lastIndexOf("/") + 1);
-
-    log.info(
-        "Writing chunk of '{}' lines from uploaded CSV file '{}' to JSON file '{}'",
-        chunk.size(),
-        csvFileName,
-        jsonFileName);
-
+    if (log.isDebugEnabled()) {
+      String jsonFileName = FileUtils.getFileNameWithFormat(targetJsonPath);
+      log.info(
+          "Writing chunk of '{}' lines from uploaded CSV file '{}' to JSON file '{}'",
+          chunk.size(),
+          csvFileName,
+          jsonFileName);
+    }
 
     var employeeCodesThatExistInDb = batchJobStatistics.getEmployeeCodesThatExistInDb();
+
     // todo add other type of employees
     var hireEmployees =
         chunk.getItems().stream()
@@ -106,7 +105,6 @@ public class JsonWriter implements ItemWriter<Action> {
           addedEmployees.stream().map(EmployeeEntity::getEmployeeCode).toList());
     }
 
-    // just logging todo check later
     if (chunk.isEnd()) {
       log.info(
           "Written '{}' lines to json file  of total '{}' lines from csv file.",
@@ -116,12 +114,9 @@ public class JsonWriter implements ItemWriter<Action> {
       jsonResponse =
           jsonResponse.toBuilder().errors(batchJobStatistics.getErrorStatistics()).build();
     }
+
     // update the json file
     objectMapper.writeValue(jsonFilePath, jsonResponse);
-
-    log.warn(
-        " _________________TIME OF WRITE EXECUTION____________________: {} ms",
-        System.currentTimeMillis() - startTime);
   }
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
@@ -130,6 +125,7 @@ public class JsonWriter implements ItemWriter<Action> {
         .employeeHireDate(hireAction.employeeHireDate())
         .employeeFullName(hireAction.employeeFullName())
         .employeGender(hireAction.employeGender())
+        .employeeBirthDate(hireAction.employeeBirthDate())
         .salaryComponentEntities(getSalaryComponents(hireAction))
         .build();
   }

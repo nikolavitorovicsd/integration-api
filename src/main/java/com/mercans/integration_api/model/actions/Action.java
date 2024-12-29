@@ -1,4 +1,4 @@
-package com.mercans.integration_api.actions;
+package com.mercans.integration_api.model.actions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

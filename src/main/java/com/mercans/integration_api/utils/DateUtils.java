@@ -11,9 +11,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DateUtils {
 
+  // todo fix method as it stores dates in 2092-07-01 year
   public LocalDate getLocalDateFromCsvObject(Object csvValue, boolean skippable) {
     try {
-      // todo can be extracted and reused in util class
       String value = csvValue.toString();
       StringBuilder formattedDate = new StringBuilder();
 
@@ -45,7 +45,13 @@ public class DateUtils {
         return null;
       }
       throw new UnskippableCsvException(
-          String.format("Csv date '%s' couldn't be parsed", csvValue));
+          String.format("Csv value '%s' couldn't be parsed to LocalDate", csvValue));
     }
+  }
+
+  // todo IMPLEMENT ACCORDING TO DOCUMENTATION
+  public String getEmployeeCodeFromStartDate(LocalDate hireDate) {
+    // date comes as "2022-01-12", after replace it looks like "20220112", after substring "220112"
+    return hireDate.toString().replace("-", "").substring(2, 8) + "2B";
   }
 }

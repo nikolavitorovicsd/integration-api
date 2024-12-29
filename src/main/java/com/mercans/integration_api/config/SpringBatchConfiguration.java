@@ -1,10 +1,10 @@
 package com.mercans.integration_api.config;
 
-import com.mercans.integration_api.actions.Action;
 import com.mercans.integration_api.config.listeners.AddStatisticsBeforeJobAndRemoveAfterJobListener;
 import com.mercans.integration_api.config.listeners.CompressJsonAndRemoveAfterJobListener;
 import com.mercans.integration_api.config.listeners.RemoveUploadedCsvFileAfterJobListener;
 import com.mercans.integration_api.model.EmployeeRecord;
+import com.mercans.integration_api.model.actions.Action;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -51,9 +51,7 @@ public class SpringBatchConfiguration {
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
-        .processor(
-            jsonProcessor) // todo add skip listener to collect all skipped rows DURING PROCESS INTO
-        // JSON ERRORS!!!!
+        .processor(jsonProcessor)
         .writer(jsonWriter)
         .build();
   }

@@ -1,6 +1,6 @@
 package com.mercans.integration_api.model;
 
-import com.mercans.integration_api.actions.Action;
+import com.mercans.integration_api.model.actions.Action;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 
-// todo finish creation of JsonResponse
 @Builder(toBuilder = true)
 public record JsonResponse(
     @NotNull UUID uuid,

@@ -1,4 +1,4 @@
-package com.mercans.integration_api.actions;
+package com.mercans.integration_api.model.actions;
 
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.enums.ActionType;
@@ -11,11 +11,11 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record HireAction(
-    @NotNull String employeeCode,
-    @NotNull LocalDate employeeHireDate,
-    @NotNull String employeeFullName,
+    @NotNull(message = "employeeCode must not be null") String employeeCode,
+    @NotNull(message = "employeeHireDate must not be null") LocalDate employeeHireDate,
+    @NotNull(message = "employeeFullName must not be null") String employeeFullName,
     Gender employeGender,
-    LocalDate employeeBirthDate, // todo add in writter
+    LocalDate employeeBirthDate,
     Set<@Valid PayComponent> payComponents,
     boolean shouldBeSkippedDuringWrite)
     implements Action {

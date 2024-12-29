@@ -28,8 +28,8 @@ public class CompressJsonAndRemoveAfterJobListener implements JobExecutionListen
   public void afterJob(JobExecution jobExecution) {
     String gzipJsonPath = sourceJsonPath + ".gz";
 
-    String jsonFileName = sourceJsonPath.substring(sourceJsonPath.lastIndexOf("/") + 1);
-    String gzipJsonFileName = gzipJsonPath.substring(gzipJsonPath.lastIndexOf("/") + 1);
+    String jsonFileName = FileUtils.getFileNameWithFormat(sourceJsonPath);
+    String gzipJsonFileName = FileUtils.getFileNameWithFormat(gzipJsonPath);
 
     try {
       // compress json

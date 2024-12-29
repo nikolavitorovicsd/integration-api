@@ -21,7 +21,7 @@ public class BatchJobStatistics implements Serializable {
   // errors statistics
   private final ErrorStatistics errorStatistics = new ErrorStatistics();
 
-  // keep track of already processed employees in one job
+  // keep track of already processed employeeCodes in one job
   private final Set<String> hireEmployeesThatWereAlreadyProcessed = new HashSet<>();
 
   // keep track of existing employees in db
@@ -33,5 +33,26 @@ public class BatchJobStatistics implements Serializable {
 
   public void updateJsonFileWrittenLinesCount(int linesCount) {
     jsonFileLinesCount.getAndAdd(linesCount);
+  }
+
+  public boolean isEmployeeInDb(String employeeCode) {
+    return employeeCodesThatExistInDb.contains(employeeCode);
+  }
+
+  public boolean isHireEmployeeAlreadyProcessed(String employeeCode) {
+    return hireEmployeesThatWereAlreadyProcessed.contains(employeeCode);
+  }
+
+  public void addToAlreadyProcessedHireEmployees(String employeeCode) {
+    hireEmployeesThatWereAlreadyProcessed.add(employeeCode);
+  }
+
+  // this method checks whether employee exists in db or in already processed Hire employees
+  // in order to avoid doing redundant work and sending this employee to be saved in writer
+  // example: we receieve CSV row that alters employee that is not existing in db
+  // example: we receieve CSV row that alters employee that is not yet inserted but will be inserted
+  // in some later row
+  public boolean isNotPresentInDbAndNotProcessed(String employeeCode) {
+    return !isEmployeeInDb(employeeCode) && !isHireEmployeeAlreadyProcessed(employeeCode);
   }
 }
