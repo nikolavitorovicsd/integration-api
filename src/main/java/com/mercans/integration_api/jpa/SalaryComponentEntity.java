@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "salary_component")
@@ -16,14 +13,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode
+@Getter
+@Setter
 public class SalaryComponentEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "salary_component_id_seq")
-  @SequenceGenerator(
-      name = "salary_component_id_seq",
-      sequenceName = "salary_component_id_seq",
-      allocationSize = 3)
+//  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "salary_component_id_seq")
+//  @SequenceGenerator(
+//      name = "salary_component_id_seq",
+//      sequenceName = "salary_component_id_seq",
+//      allocationSize = 1)
   private BigInteger id;
 
   @NotNull
@@ -42,4 +41,6 @@ public class SalaryComponentEntity {
   @NotNull
   @Column(name = "end_date")
   private LocalDate endDate;
+
+  @Transient private BigInteger employeeId;
 }

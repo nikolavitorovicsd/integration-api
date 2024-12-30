@@ -22,7 +22,7 @@ public class PayComponentBuilder {
     var payComponent = buildPayComponent(payAmount, payCurrency, payStartDate, payEndDate);
 
     // compensation
-    Long compensationAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), true);
+    Long compensationAmount = getLongFromCsvObject(employeeRecord.getCompensationAmount(), true);
     Currency compensationCurrency =
         Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), true);
     LocalDate compensationStartDate =

@@ -23,4 +23,4 @@ CREATE TABLE salary_component (
 );
 
 -- add index on foreign key
-CREATE INDEX salary_component_person_id ON salary_component USING btree (person_id)
+--CREATE INDEX salary_component_person_id ON salary_component USING btree (person_id)

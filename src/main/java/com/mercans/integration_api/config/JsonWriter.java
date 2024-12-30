@@ -7,13 +7,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
+import com.mercans.integration_api.jpa.repository.TestInsertRepository;
 import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.actions.Action;
-import com.mercans.integration_api.model.actions.ChangeAction;
 import com.mercans.integration_api.model.actions.HireAction;
 import com.mercans.integration_api.model.enums.ActionType;
+import com.mercans.integration_api.service.BulkInsertService;
 import com.mercans.integration_api.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +38,8 @@ public class JsonWriter implements ItemWriter<Action> {
   private final ObjectMapper objectMapper;
 
   private final EmployeeRepository employeeRepository;
+  private final TestInsertRepository testInsertRepository;
+  private final BulkInsertService bulkInsertService;
 
   public JsonWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
@@ -45,7 +48,9 @@ public class JsonWriter implements ItemWriter<Action> {
       @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
           BatchJobStatistics batchJobStatistics,
       ObjectMapper objectMapper,
-      EmployeeRepository employeeRepository) {
+      EmployeeRepository employeeRepository,
+      TestInsertRepository testInsertRepository,
+      BulkInsertService bulkInsertService) {
 
     this.targetJsonPath = targetJsonPath;
     this.csvFileName = csvFileName;
@@ -53,6 +58,8 @@ public class JsonWriter implements ItemWriter<Action> {
     this.batchJobStatistics = batchJobStatistics;
     this.objectMapper = objectMapper;
     this.employeeRepository = employeeRepository;
+    this.testInsertRepository = testInsertRepository;
+    this.bulkInsertService = bulkInsertService;
   }
 
   // this method will append csv lines in chunks to the same json file and in same time save/update
@@ -82,11 +89,11 @@ public class JsonWriter implements ItemWriter<Action> {
             .map(this::buildHirePersonEntity)
             .toList();
 
-    var updateEmployees =
-        chunk.getItems().stream()
-            .filter(action -> action.getAction().equals(ActionType.CHANGE))
-            .map(ChangeAction.class::cast)
-            .toList();
+    //    var updateEmployees =
+    //        chunk.getItems().stream()
+    //            .filter(action -> action.getAction().equals(ActionType.CHANGE))
+    //            .map(ChangeAction.class::cast)
+    //            .toList();
 
     //
     File jsonFilePath = new File(targetJsonPath);
@@ -100,9 +107,12 @@ public class JsonWriter implements ItemWriter<Action> {
 
     // saving to db and updating the list of employeeCodes to have it for next chunk
     if (isNotEmpty(hireEmployees)) {
-      var addedEmployees = employeeRepository.saveAll(hireEmployees);
-      employeeCodesThatExistInDb.addAll(
-          addedEmployees.stream().map(EmployeeEntity::getEmployeeCode).toList());
+      //      var addedEmployees = employeeRepository.saveAll(hireEmployees);
+      //      employeeCodesThatExistInDb.addAll(
+      //          addedEmployees.stream().map(EmployeeEntity::getEmployeeCode).toList());
+
+      log.info("_____________________NEWWWW____BULKKKKKKKKKKKKKKKKKKKKKKKK");
+      bulkInsertService.bulkInsert(hireEmployees, batchJobStatistics);
     }
 
     if (chunk.isEnd()) {
@@ -118,6 +128,8 @@ public class JsonWriter implements ItemWriter<Action> {
     // update the json file
     objectMapper.writeValue(jsonFilePath, jsonResponse);
   }
+
+  //  private void doBulkInsert()
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
     return EmployeeEntity.builder()

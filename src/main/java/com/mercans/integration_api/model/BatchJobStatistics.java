@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -26,6 +27,20 @@ public class BatchJobStatistics implements Serializable {
 
   // keep track of existing employees in db
   private final Set<String> employeeCodesThatExistInDb;
+
+  // TODO NEW CCOUNTERS
+  // how many lines there were in csv
+  private final AtomicLong personSequence = new AtomicLong();
+  // how many lines were written to json
+  private final AtomicLong componentSequence = new AtomicLong();
+
+  public void updatePersonSequence(long personCount) {
+    personSequence.getAndAdd(personCount);
+  }
+
+  public void updateComponentSequence(long componentCount) {
+    componentSequence.getAndAdd(componentCount);
+  }
 
   public void updateCsvFileReadLinesCount() {
     csvFileReadLinesCount.incrementAndGet();

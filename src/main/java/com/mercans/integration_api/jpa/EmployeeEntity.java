@@ -14,6 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Getter
+@Setter
 @EqualsAndHashCode
 public class EmployeeEntity {
 
@@ -25,8 +26,8 @@ public class EmployeeEntity {
   // spotless:on
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "person_id_seq")
-  @SequenceGenerator(name = "person_id_seq", sequenceName = "person_id_seq", allocationSize = 3)
+//  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "person_id_seq")
+//  @SequenceGenerator(name = "person_id_seq", sequenceName = "person_id_seq", allocationSize = 1)
   private BigInteger id;
 
   @NotNull
