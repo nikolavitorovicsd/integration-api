@@ -23,7 +23,8 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
   public void beforeJob(JobExecution jobExecution) {
     var employeeCodes = employeeRepository.getAllEmployeeCodes();
 
-    // todo this should be refactored, takes too much space
+    // todo this should be refactored, takes too much space in database maybe some query that clears
+    // the table row by job execution id in job_execution_context table
     jobExecution
         .getExecutionContext()
         .put(BATCH_JOB_STATISTICS, new BatchJobStatistics(employeeCodes));

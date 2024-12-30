@@ -6,6 +6,7 @@ import com.mercans.integration_api.model.BatchJobStatistics;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,85 +19,56 @@ public class BulkInsertService {
 
   private final JdbcTemplate jdbcTemplate;
 
-  public void bulkInsert(List<EmployeeEntity> employees, BatchJobStatistics batchJobStatistics) {
-
-    log.info("_______PREPARING SEQUENCE________");
-    long preparingTimeStart = System.currentTimeMillis();
-
-    // person sequence quering
-    if (batchJobStatistics.getPersonSequence().get() == 0) {
-      String maxEmployeeIdQuery = "SELECT MAX (p.id) FROM person p";
-
-      Long maxEmployeeId = jdbcTemplate.queryForObject(maxEmployeeIdQuery, Long.class);
-
-      if (maxEmployeeId == null) {
-        batchJobStatistics.getPersonSequence().incrementAndGet();
-      } else {
-        batchJobStatistics.getPersonSequence().getAndAdd(maxEmployeeId + 1);
-      }
-    } else {
-      batchJobStatistics.getPersonSequence().get();
-    }
-
-    // person sequence quering
-    if (batchJobStatistics.getComponentSequence().get() == 0) {
-      String maxComponentQuery = "SELECT MAX (sc.id) FROM salary_component sc";
-
-      Long maxComponentId = jdbcTemplate.queryForObject(maxComponentQuery, Long.class);
-
-      if (maxComponentId == null) {
-        batchJobStatistics.getComponentSequence().incrementAndGet();
-      } else {
-        batchJobStatistics.getComponentSequence().getAndAdd(maxComponentId + 1);
-      }
-    } else {
-      batchJobStatistics.getComponentSequence().get();
-    }
+  public List<String> bulkInsert(
+      List<EmployeeEntity> employees, BatchJobStatistics batchJobStatistics) {
+    // hibernate is terribly slow in bulk inserts compared to this implementation
+    // 'person' table sequence
+    updatePersonTablePKSequence(batchJobStatistics);
+    // 'salary_component' table sequence
+    updateSalaryComponentTablePKSequence(batchJobStatistics);
 
     // we want to start from id 1 for bot tables!
     long nextEmployeeId = batchJobStatistics.getPersonSequence().get();
     long nextSalaryComponentId = batchJobStatistics.getComponentSequence().get();
 
-    log.info(
-        "_______PREPARED SEQUENCE IN '{}' ms", System.currentTimeMillis() - preparingTimeStart);
-
-    // todo bellow is good, above makes issues
-
-    log.info("_______PREPARING ENTITIES______");
-    long entitiesTimeStart = System.currentTimeMillis();
-
     for (EmployeeEntity employee : employees) {
-      // Set the employee ID
+      // set current sequence number as person id
       var employeeId = BigInteger.valueOf(nextEmployeeId);
       employee.setId(employeeId);
 
-      // For each salary component, set the corresponding employee ID and assign salary component ID
+      // set the corresponding employee id for each salary component and assign salary component id
       for (SalaryComponentEntity salaryComponent : employee.getSalaryComponentEntities()) {
         salaryComponent.setId(BigInteger.valueOf(nextSalaryComponentId));
         salaryComponent.setEmployeeId(employeeId);
-        nextSalaryComponentId++; // Increment the salary component ID for the next one
+        // increment the salary component ID for the next one
+        nextSalaryComponentId++;
       }
-      nextEmployeeId++; // Increment employee ID for the next employee
+      // increment employee id sequence for the next employee
+      nextEmployeeId++;
     }
-
-    log.info(
-        "_______PREPARED ENTITIES______ IN '{}' ms",
-        System.currentTimeMillis() - entitiesTimeStart);
-
-    log.info("_______PREPARING QUERY VALUES______");
-    long queryValuesTimeStart = System.currentTimeMillis();
 
     // employees
     Long[] employeesIds =
         employees.stream().map(employee -> employee.getId().longValue()).toArray(Long[]::new);
-    String[] employeesFullNames =
-        employees.stream().map(EmployeeEntity::getEmployeeFullName).toArray(String[]::new);
     String[] employeesCodes =
         employees.stream().map(EmployeeEntity::getEmployeeCode).toArray(String[]::new);
     Date[] employeesHireDates =
         employees.stream()
             .map(employee -> Date.valueOf(employee.getEmployeeHireDate()))
             .toArray(Date[]::new);
+    String[] employeesFullNames =
+        employees.stream().map(EmployeeEntity::getEmployeeFullName).toArray(String[]::new);
+    String[] employeesGenders =
+        employees.stream()
+            .map(
+                employee ->
+                    Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
+            .toArray(String[]::new);
+    Date[] employeesBirthDates = null;
+    // todo handle later
+    //        employees.stream()
+    //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
+    //            .toArray(Date[]::new);
 
     // components
     Long[] componentsIds =
@@ -133,37 +105,27 @@ public class BulkInsertService {
             .map(component -> Date.valueOf(component.getEndDate()))
             .toArray(Date[]::new);
 
-    log.info(
-        "_______PREPARed QUERY VALUES IN '{}' ms ",
-        System.currentTimeMillis() - queryValuesTimeStart);
-
-    log.info("_______PREPARING QUERIES______");
-    long preparingQueryStart = System.currentTimeMillis();
-
-    // SQL Query to insert Employee and retrieve generated IDs
-    String insertPersonSql =
+    // query that inserts in both 'person' and 'salary_component' table applying PG unnest ability
+    String insertPersonAndSalaryComponentsSql =
         """
-            INSERT INTO person (id, full_name, employee_code, hire_date)
-            SELECT * FROM unnest(?::numeric[], ?::text[], ?::text[], ?::date[]);
+            INSERT INTO person (id, full_name, employee_code, hire_date, gender, birth_date)
+            SELECT * FROM unnest(?::numeric[], ?::text[], ?::text[], ?::date[], ?::text[],?::date[]);
 
             INSERT INTO salary_component (id, person_id, amount, currency, start_date, end_date)
             SELECT *  FROM unnest(?::numeric[], ?::numeric[], ?::numeric[], ?::text[], ?::date[], ?::date[]);
             """;
 
-    log.info(
-        "_______ADDED QUERIES___IN '{}' ms. ", System.currentTimeMillis() - preparingQueryStart);
-
-    log.info("PREPARING TO INSERT ROWS TO DB");
-    long startTime = System.currentTimeMillis();
-
-    // Execute the batch update
+    var startTime = System.currentTimeMillis();
+    // execute query
     var rowsInserted =
         jdbcTemplate.update(
-            insertPersonSql,
+            insertPersonAndSalaryComponentsSql,
             employeesIds,
             employeesFullNames,
             employeesCodes,
             employeesHireDates,
+            employeesGenders,
+            employeesBirthDates,
             componentsIds,
             componentEmployeeIds,
             componentsAmounts,
@@ -171,15 +133,74 @@ public class BulkInsertService {
             componentsStartDates,
             componentsEndDates);
 
-    // need to increase sequence again
-    if(employeesIds.length > 0) {
+    // after successful insert, increase sequences
+    if (employeesIds.length > 0) {
       batchJobStatistics.getPersonSequence().getAndAdd(employeesIds.length);
     }
-    if(componentsIds.length > 0) {
+    if (componentsIds.length > 0) {
       batchJobStatistics.getComponentSequence().getAndAdd(componentsIds.length);
     }
 
     log.info(
         "INSERTED {} ROWS TO DB IN '{}' ms", rowsInserted, System.currentTimeMillis() - startTime);
+
+    return List.of(employeesCodes);
+  }
+
+  /**
+   * this method makes sure that 'person' table is updated properly to avoid having duplicate pk
+   * keys and updates current job statistics with current sequences to allow better track of the db
+   *
+   * @param batchJobStatistics
+   */
+  private void updatePersonTablePKSequence(BatchJobStatistics batchJobStatistics) {
+    // if sequence count is not present in statistics, we will fetch it and update accordingly
+    if (batchJobStatistics.getPersonSequence().get() == 0) {
+      String maxEmployeeIdQuery = "SELECT MAX (p.id) FROM person p";
+
+      Long maxEmployeeId = jdbcTemplate.queryForObject(maxEmployeeIdQuery, Long.class);
+
+      // if 'person' table is empty, maxEmployeeId will be returned as null
+      if (maxEmployeeId == null) {
+        // table is empty, counter is currently 0 and needs to be increased to 1
+        batchJobStatistics.getPersonSequence().incrementAndGet();
+      } else {
+        // table is not empty, counter has some value and we increase it by 1
+        batchJobStatistics.getPersonSequence().getAndAdd(maxEmployeeId + 1);
+      }
+    } else {
+      // if sequence count is present in statistics, we will increase counter before unnest insert
+      // start
+      batchJobStatistics.getPersonSequence().get();
+    }
+  }
+
+  /**
+   * this method makes sure that 'salary_component' table is updated properly to avoid having
+   * duplicate pk keys and updates current job statistics with current sequences to allow better
+   * track of the db
+   *
+   * @param batchJobStatistics
+   */
+  private void updateSalaryComponentTablePKSequence(BatchJobStatistics batchJobStatistics) {
+    // if sequence count is not present in statistics, we will fetch it and update accordingly
+    if (batchJobStatistics.getComponentSequence().get() == 0) {
+      String maxComponentQuery = "SELECT MAX (sc.id) FROM salary_component sc";
+
+      Long maxComponentId = jdbcTemplate.queryForObject(maxComponentQuery, Long.class);
+
+      // if 'salary_component' table is empty, maxEmployeeId will be returned as null
+      if (maxComponentId == null) {
+        // table is empty, counter is currently 0 and needs to be increased to 1
+        batchJobStatistics.getComponentSequence().incrementAndGet();
+      } else {
+        // table is not empty, counter has some value and we increase it by 1
+        batchJobStatistics.getComponentSequence().getAndAdd(maxComponentId + 1);
+      }
+    } else {
+      // if sequence count is present in statistics, we will increase counter before unnest insert
+      // start
+      batchJobStatistics.getComponentSequence().get();
+    }
   }
 }

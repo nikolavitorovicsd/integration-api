@@ -1,5 +1,6 @@
 package com.mercans.integration_api.model.actions;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.enums.ActionType;
 import com.mercans.integration_api.model.enums.Gender;
@@ -16,7 +17,7 @@ public record ChangeAction(
     Gender employeGender,
     LocalDate employeeBirthDate,
     Set<@Valid PayComponent> payComponents,
-    boolean shouldBeSkippedDuringWrite)
+    @JsonIgnore boolean shouldBeSkippedDuringWrite)
     implements Action {
 
   @Override

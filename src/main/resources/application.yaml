@@ -12,8 +12,8 @@ spring:
       initialize-schema: always
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 12MB
+      max-request-size: 12MB
   flyway:
     locations:
       - classpath:/db/migration
@@ -31,6 +31,7 @@ spring:
           optimizer:
             pooled:
               preferred: pooled-lo
+
 
 # provides nice logging for hibernate with additional information like batch, type, batsh size
 logging:
@@ -53,5 +54,17 @@ server:
 
 # custom batch config
 batch-config:
-  chunk-size: 3000 # chunk size which determines how many rows are processed during read/process/write
+  chunk-size: 10000 # chunk size which determines how many rows are processed during read/process/write
   skip-limit: 100000 # 100k rows
+
+# todo prometheus
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics,prometheus
+#  prometheus:
+#    metrics:
+#      export:
+#        enabled: true
+

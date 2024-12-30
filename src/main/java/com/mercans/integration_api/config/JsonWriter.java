@@ -89,15 +89,7 @@ public class JsonWriter implements ItemWriter<Action> {
             .map(this::buildHirePersonEntity)
             .toList();
 
-    //    var updateEmployees =
-    //        chunk.getItems().stream()
-    //            .filter(action -> action.getAction().equals(ActionType.CHANGE))
-    //            .map(ChangeAction.class::cast)
-    //            .toList();
-
-    //
     File jsonFilePath = new File(targetJsonPath);
-
     JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
     // append items to json
     jsonResponse.payload().addAll(chunk.getItems());
@@ -105,16 +97,21 @@ public class JsonWriter implements ItemWriter<Action> {
     // increase json write lines count
     batchJobStatistics.updateJsonFileWrittenLinesCount(chunk.size());
 
-    // saving to db and updating the list of employeeCodes to have it for next chunk
+    // we do inserts first
     if (isNotEmpty(hireEmployees)) {
-      //      var addedEmployees = employeeRepository.saveAll(hireEmployees);
-      //      employeeCodesThatExistInDb.addAll(
-      //          addedEmployees.stream().map(EmployeeEntity::getEmployeeCode).toList());
-
-      log.info("_____________________NEWWWW____BULKKKKKKKKKKKKKKKKKKKKKKKK");
-      bulkInsertService.bulkInsert(hireEmployees, batchJobStatistics);
+      // saving to db
+      var insertedEmployees = bulkInsertService.bulkInsert(hireEmployees, batchJobStatistics);
+      // updating the list employeeCodesThatExistInDb to have track in next chunk what was added
+      employeeCodesThatExistInDb.addAll(insertedEmployees);
     }
 
+    // todo
+    //  updateLogic goes here
+
+    // problematic corner case that rarely happens: work when last chunk size matches provided job
+    // chunk size
+    // for example when used 1 chunk size for 2 same csv rows, chunk.isEnd() returns false even
+    // thought its really last
     if (chunk.isEnd()) {
       log.info(
           "Written '{}' lines to json file  of total '{}' lines from csv file.",
@@ -128,8 +125,6 @@ public class JsonWriter implements ItemWriter<Action> {
     // update the json file
     objectMapper.writeValue(jsonFilePath, jsonResponse);
   }
-
-  //  private void doBulkInsert()
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
     return EmployeeEntity.builder()
@@ -155,6 +150,8 @@ public class JsonWriter implements ItemWriter<Action> {
         .build();
   }
 
+  // if json is missing, application should break because some corner case was missed during
+  // handling
   private JsonResponse getOrCreateJson(File jsonFilePath) throws IOException {
     JsonResponse jsonResponse;
     if (jsonFilePath.exists()) {

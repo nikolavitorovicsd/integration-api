@@ -102,7 +102,6 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
         }
       }
     } catch (RuntimeException exception) {
-      // todo add more readable exception
 
       if (exception instanceof UnskippableCsvException) {
         String message =
@@ -115,7 +114,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
         // we skip records that have unskippable exception
         return null;
       }
-      throw new RuntimeException("WASNT HANDLED!!! BIG FAILURE!");
+      throw new RuntimeException("Stop the application, somethign is unhandled properly!");
     }
 
     // this validates created action fields (e.g if hire action has null employeeCode)

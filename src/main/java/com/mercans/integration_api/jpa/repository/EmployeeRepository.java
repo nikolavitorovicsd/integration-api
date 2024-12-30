@@ -6,6 +6,7 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+// todo refactor
 public interface EmployeeRepository extends JpaRepository<EmployeeEntity, BigInteger> {
 
   @Query(" SELECT em.employeeCode FROM EmployeeEntity em ")
