@@ -1,8 +1,8 @@
 package com.mercans.integration_api.service;
 
+import com.mercans.integration_api.config.listeners.BatchJobCache;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
-import com.mercans.integration_api.model.BatchJobStatistics;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.util.List;
@@ -18,18 +18,16 @@ import org.springframework.stereotype.Service;
 public class BulkInsertService {
 
   private final JdbcTemplate jdbcTemplate;
+  private final BatchJobCache batchJobCache;
 
-  public List<String> bulkInsert(
-      List<EmployeeEntity> employees, BatchJobStatistics batchJobStatistics) {
-    // hibernate is terribly slow in bulk inserts compared to this implementation
+  public List<String> bulkInsert(List<EmployeeEntity> employees) {
     // 'person' table sequence
-    updatePersonTablePKSequence(batchJobStatistics);
+    updatePersonTablePKSequence();
     // 'salary_component' table sequence
-    updateSalaryComponentTablePKSequence(batchJobStatistics);
+    updateSalaryComponentTablePKSequence();
 
-    // we want to start from id 1 for bot tables!
-    long nextEmployeeId = batchJobStatistics.getPersonSequence().get();
-    long nextSalaryComponentId = batchJobStatistics.getComponentSequence().get();
+    long nextEmployeeId = batchJobCache.getStatistics().getPersonSequence().get();
+    long nextSalaryComponentId = batchJobCache.getStatistics().getComponentSequence().get();
 
     for (EmployeeEntity employee : employees) {
       // set current sequence number as person id
@@ -135,10 +133,10 @@ public class BulkInsertService {
 
     // after successful insert, increase sequences
     if (employeesIds.length > 0) {
-      batchJobStatistics.getPersonSequence().getAndAdd(employeesIds.length);
+      batchJobCache.getStatistics().updatePersonSequence(employeesIds.length);
     }
     if (componentsIds.length > 0) {
-      batchJobStatistics.getComponentSequence().getAndAdd(componentsIds.length);
+      batchJobCache.getStatistics().updateComponentSequence(componentsIds.length);
     }
 
     log.info(
@@ -150,12 +148,10 @@ public class BulkInsertService {
   /**
    * this method makes sure that 'person' table is updated properly to avoid having duplicate pk
    * keys and updates current job statistics with current sequences to allow better track of the db
-   *
-   * @param batchJobStatistics
    */
-  private void updatePersonTablePKSequence(BatchJobStatistics batchJobStatistics) {
+  private void updatePersonTablePKSequence() {
     // if sequence count is not present in statistics, we will fetch it and update accordingly
-    if (batchJobStatistics.getPersonSequence().get() == 0) {
+    if (batchJobCache.getStatistics().getPersonSequence().get() == 0) {
       String maxEmployeeIdQuery = "SELECT MAX (p.id) FROM person p";
 
       Long maxEmployeeId = jdbcTemplate.queryForObject(maxEmployeeIdQuery, Long.class);
@@ -163,15 +159,14 @@ public class BulkInsertService {
       // if 'person' table is empty, maxEmployeeId will be returned as null
       if (maxEmployeeId == null) {
         // table is empty, counter is currently 0 and needs to be increased to 1
-        batchJobStatistics.getPersonSequence().incrementAndGet();
+        batchJobCache.getStatistics().getPersonSequence().incrementAndGet();
       } else {
         // table is not empty, counter has some value and we increase it by 1
-        batchJobStatistics.getPersonSequence().getAndAdd(maxEmployeeId + 1);
+        batchJobCache.getStatistics().updatePersonSequence(maxEmployeeId + 1);
       }
     } else {
       // if sequence count is present in statistics, we will increase counter before unnest insert
-      // start
-      batchJobStatistics.getPersonSequence().get();
+      batchJobCache.getStatistics().getPersonSequence().get();
     }
   }
 
@@ -179,12 +174,10 @@ public class BulkInsertService {
    * this method makes sure that 'salary_component' table is updated properly to avoid having
    * duplicate pk keys and updates current job statistics with current sequences to allow better
    * track of the db
-   *
-   * @param batchJobStatistics
    */
-  private void updateSalaryComponentTablePKSequence(BatchJobStatistics batchJobStatistics) {
+  private void updateSalaryComponentTablePKSequence() {
     // if sequence count is not present in statistics, we will fetch it and update accordingly
-    if (batchJobStatistics.getComponentSequence().get() == 0) {
+    if (batchJobCache.getStatistics().getComponentSequence().get() == 0) {
       String maxComponentQuery = "SELECT MAX (sc.id) FROM salary_component sc";
 
       Long maxComponentId = jdbcTemplate.queryForObject(maxComponentQuery, Long.class);
@@ -192,15 +185,14 @@ public class BulkInsertService {
       // if 'salary_component' table is empty, maxEmployeeId will be returned as null
       if (maxComponentId == null) {
         // table is empty, counter is currently 0 and needs to be increased to 1
-        batchJobStatistics.getComponentSequence().incrementAndGet();
+        batchJobCache.getStatistics().getComponentSequence().incrementAndGet();
       } else {
         // table is not empty, counter has some value and we increase it by 1
-        batchJobStatistics.getComponentSequence().getAndAdd(maxComponentId + 1);
+        batchJobCache.getStatistics().updateComponentSequence(maxComponentId + 1);
       }
     } else {
       // if sequence count is present in statistics, we will increase counter before unnest insert
-      // start
-      batchJobStatistics.getComponentSequence().get();
+      batchJobCache.getStatistics().getComponentSequence().get();
     }
   }
 }

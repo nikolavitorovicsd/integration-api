@@ -1,18 +1,15 @@
 package com.mercans.integration_api.model;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 @Getter
-@ToString
 @RequiredArgsConstructor
-public class BatchJobStatistics implements Serializable {
+public final class BatchJobStatistics {
 
   // how many lines there were in csv
   private final AtomicInteger csvFileReadLinesCount = new AtomicInteger();
@@ -28,10 +25,9 @@ public class BatchJobStatistics implements Serializable {
   // keep track of existing employees in db
   private final Set<String> employeeCodesThatExistInDb;
 
-  // TODO NEW CCOUNTERS
-  // how many lines there were in csv
+  // keep track of 'person' table ID sequence
   private final AtomicLong personSequence = new AtomicLong();
-  // how many lines were written to json
+  // keep track of 'salary_component' table ID sequence
   private final AtomicLong componentSequence = new AtomicLong();
 
   public void updatePersonSequence(long personCount) {

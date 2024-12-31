@@ -1,11 +1,10 @@
 package com.mercans.integration_api.config.listeners;
 
-import static com.mercans.integration_api.constants.GlobalConstants.*;
-
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.BatchJobStatistics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -18,21 +17,22 @@ import org.springframework.stereotype.Component;
 public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecutionListener {
 
   private final EmployeeRepository employeeRepository;
+  private final BatchJobCache batchJobCache;
 
+  // load all existing employees to cache
   @Override
   public void beforeJob(JobExecution jobExecution) {
     var employeeCodes = employeeRepository.getAllEmployeeCodes();
 
-    // todo this should be refactored, takes too much space in database maybe some query that clears
-    // the table row by job execution id in job_execution_context table
-    jobExecution
-        .getExecutionContext()
-        .put(BATCH_JOB_STATISTICS, new BatchJobStatistics(employeeCodes));
+    batchJobCache.putStatistics(new BatchJobStatistics(employeeCodes));
   }
 
-  // remove unnecessary data
+  // clear cache
   @Override
   public void afterJob(JobExecution jobExecution) {
-    jobExecution.getExecutionContext().remove(BATCH_JOB_STATISTICS);
+    batchJobCache.clearStatistics();
+    if (ObjectUtils.isNotEmpty(batchJobCache.getStatistics())) {
+      throw new RuntimeException("Failed to clear cache after job!");
+    }
   }
 }

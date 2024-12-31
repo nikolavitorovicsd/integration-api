@@ -4,11 +4,9 @@ import static com.mercans.integration_api.constants.GlobalConstants.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mercans.integration_api.config.listeners.BatchJobCache;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
-import com.mercans.integration_api.jpa.repository.EmployeeRepository;
-import com.mercans.integration_api.jpa.repository.TestInsertRepository;
-import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.actions.Action;
@@ -34,32 +32,25 @@ public class JsonWriter implements ItemWriter<Action> {
   private final String targetJsonPath;
   private final String csvFileName;
   private final UUID jsonResponseUUID;
-  private final BatchJobStatistics batchJobStatistics;
-  private final ObjectMapper objectMapper;
 
-  private final EmployeeRepository employeeRepository;
-  private final TestInsertRepository testInsertRepository;
+  private final ObjectMapper objectMapper;
   private final BulkInsertService bulkInsertService;
+  private final BatchJobCache batchJobCache;
 
   public JsonWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_NAME + "']}") String csvFileName,
       @Value("#{jobParameters['" + BATCH_JOB_JSON_UUID + "']}") UUID jsonResponseUUID,
-      @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
-          BatchJobStatistics batchJobStatistics,
       ObjectMapper objectMapper,
-      EmployeeRepository employeeRepository,
-      TestInsertRepository testInsertRepository,
-      BulkInsertService bulkInsertService) {
+      BulkInsertService bulkInsertService,
+      BatchJobCache batchJobCache) {
 
     this.targetJsonPath = targetJsonPath;
     this.csvFileName = csvFileName;
     this.jsonResponseUUID = jsonResponseUUID;
-    this.batchJobStatistics = batchJobStatistics;
     this.objectMapper = objectMapper;
-    this.employeeRepository = employeeRepository;
-    this.testInsertRepository = testInsertRepository;
     this.bulkInsertService = bulkInsertService;
+    this.batchJobCache = batchJobCache;
   }
 
   // this method will append csv lines in chunks to the same json file and in same time save/update
@@ -78,35 +69,28 @@ public class JsonWriter implements ItemWriter<Action> {
           jsonFileName);
     }
 
-    var employeeCodesThatExistInDb = batchJobStatistics.getEmployeeCodesThatExistInDb();
-
-    // todo add other type of employees
-    var hireEmployees =
-        chunk.getItems().stream()
-            .filter(action -> action.getAction().equals(ActionType.HIRE))
-            .map(HireAction.class::cast)
-            .filter(hireAction -> !hireAction.shouldBeSkippedDuringWrite())
-            .map(this::buildHirePersonEntity)
-            .toList();
-
     File jsonFilePath = new File(targetJsonPath);
     JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
     // append items to json
     jsonResponse.payload().addAll(chunk.getItems());
-
     // increase json write lines count
-    batchJobStatistics.updateJsonFileWrittenLinesCount(chunk.size());
+    batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(chunk.size());
 
-    // we do inserts first
+    List<EmployeeEntity> hireEmployees = buildInsertList(chunk);
+    // includes only insert changes
     if (isNotEmpty(hireEmployees)) {
       // saving to db
-      var insertedEmployees = bulkInsertService.bulkInsert(hireEmployees, batchJobStatistics);
+      var insertedEmployees = bulkInsertService.bulkInsert(hireEmployees);
       // updating the list employeeCodesThatExistInDb to have track in next chunk what was added
-      employeeCodesThatExistInDb.addAll(insertedEmployees);
+      batchJobCache.getStatistics().getEmployeeCodesThatExistInDb().addAll(insertedEmployees);
     }
 
     // todo
-    //  updateLogic goes here
+    //    List<EmployeeEntity> updateEmployees = buildUpdateList(chunk);
+    //    // includes only update changes
+    //    if (isNotEmpty(updateEmployees)) {
+    //      // todo
+    //    }
 
     // problematic corner case that rarely happens: work when last chunk size matches provided job
     // chunk size
@@ -115,15 +99,30 @@ public class JsonWriter implements ItemWriter<Action> {
     if (chunk.isEnd()) {
       log.info(
           "Written '{}' lines to json file  of total '{}' lines from csv file.",
-          batchJobStatistics.getJsonFileLinesCount(),
-          batchJobStatistics.getCsvFileReadLinesCount());
+          batchJobCache.getStatistics().getJsonFileLinesCount(),
+          batchJobCache.getStatistics().getCsvFileReadLinesCount());
       // add all errors in the last chunk
       jsonResponse =
-          jsonResponse.toBuilder().errors(batchJobStatistics.getErrorStatistics()).build();
+          jsonResponse.toBuilder()
+              .errors(batchJobCache.getStatistics().getErrorStatistics())
+              .build();
     }
 
     // update the json file
     objectMapper.writeValue(jsonFilePath, jsonResponse);
+  }
+
+  //  private List<EmployeeEntity> buildUpdateList(Chunk<? extends Action> chunk) {
+  //
+  //  }
+
+  private List<EmployeeEntity> buildInsertList(Chunk<? extends Action> chunk) {
+    return chunk.getItems().stream()
+        .filter(action -> action.getAction().equals(ActionType.HIRE))
+        .map(HireAction.class::cast)
+        .filter(hireAction -> !hireAction.shouldBeSkippedDuringWrite())
+        .map(this::buildHirePersonEntity)
+        .toList();
   }
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {

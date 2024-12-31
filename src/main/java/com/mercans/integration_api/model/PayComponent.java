@@ -9,7 +9,7 @@ import lombok.Builder;
 @Builder
 public record PayComponent(
     @NotNull(message = "payComponent amount must not be null")
-        @Positive(message = "payComponent amount must positive number")
+        @Positive(message = "payComponent amount must be positive number")
         Long amount,
     @NotNull(message = "payComponent currency must not be null") Currency currency,
     @NotNull(message = "payComponent startDate must not be null") LocalDate startDate,

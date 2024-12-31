@@ -1,12 +1,11 @@
 package com.mercans.integration_api.config;
 
-import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_STATISTICS;
 import static com.mercans.integration_api.model.enums.ActionType.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.mercans.integration_api.config.listeners.BatchJobCache;
 import com.mercans.integration_api.exception.UnskippableCsvException;
 import com.mercans.integration_api.mapper.UniversalMapper;
-import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.ErrorStatistics;
 import com.mercans.integration_api.model.actions.Action;
@@ -20,7 +19,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,18 +26,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
 
-  private final BatchJobStatistics batchJobStatistics;
   private final Validator validator;
   private final UniversalMapper universalMapper;
+  private final BatchJobCache batchJobCache;
 
   public JsonProcessor(
-      @Value("#{jobExecutionContext['" + BATCH_JOB_STATISTICS + "']}")
-          BatchJobStatistics batchJobStatistics,
-      Validator validator,
-      UniversalMapper universalMapper) {
-    this.batchJobStatistics = batchJobStatistics;
+      Validator validator, UniversalMapper universalMapper, BatchJobCache batchJobCache) {
     this.validator = validator;
     this.universalMapper = universalMapper;
+    this.batchJobCache = batchJobCache;
   }
 
   @Override
@@ -47,6 +42,8 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
     Action action = null;
     try {
       ActionType actionType = getActionTypeFromCsvObject(employeeRecord.getAction(), false);
+
+      var batchJobStatistics = batchJobCache.getStatistics();
 
       switch (actionType) {
         case HIRE -> {
@@ -95,7 +92,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
           if (batchJobStatistics.isNotPresentInDbAndNotProcessed(terminateAction.employeeCode())) {
             saveException(
                 String.format(
-                    "Record with employeeCode '%s' doesn't exists in db neither in already processed CSV lines and can't be deleted!",
+                    "Record with employeeCode '%s' and name '%s' doesn't exists in db neither in already processed CSV lines and can't be deleted!",
                     employeeRecord.getEmployeeCode()));
             return terminateAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
@@ -114,7 +111,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
         // we skip records that have unskippable exception
         return null;
       }
-      throw new RuntimeException("Stop the application, somethign is unhandled properly!");
+      throw new RuntimeException("Stop the application, something is unhandled properly!");
     }
 
     // this validates created action fields (e.g if hire action has null employeeCode)
@@ -135,8 +132,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
   }
 
   private void saveException(String exceptionMessage) {
-    ErrorStatistics errorStatistics = batchJobStatistics.getErrorStatistics();
-
+    ErrorStatistics errorStatistics = batchJobCache.getStatistics().getErrorStatistics();
     // increase error count
     errorStatistics.updateErrorCount();
     // add to error list
