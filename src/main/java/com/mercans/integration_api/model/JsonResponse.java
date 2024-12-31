@@ -12,6 +12,7 @@ import lombok.Builder;
 public record JsonResponse(
     @NotNull UUID uuid,
     @NotNull String fname,
-    ErrorStatistics errors, // todo not finished yet, should have more information on why was
-    // something rejected
+    ErrorStatistics errors,
+    // todo IMPORANT finish data populating
+    //    Map<String, Object> data,
     @NotEmpty List<@Valid Action> payload) {}

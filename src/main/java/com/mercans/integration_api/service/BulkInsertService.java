@@ -1,8 +1,11 @@
 package com.mercans.integration_api.service;
 
+import static com.mercans.integration_api.constants.Queries.UNNEST_INSERT_QUERY;
+
 import com.mercans.integration_api.config.listeners.BatchJobCache;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
+import com.mercans.integration_api.model.QueryArgHolder;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.util.List;
@@ -45,6 +48,92 @@ public class BulkInsertService {
       nextEmployeeId++;
     }
 
+    var startTime = System.currentTimeMillis();
+    // execute query
+    QueryArgHolder queryArgHolder = buildQueryArgs(employees);
+    var rowsInserted =
+        jdbcTemplate.update(
+            UNNEST_INSERT_QUERY,
+            queryArgHolder.employeesIds(),
+            queryArgHolder.employeesFullNames(),
+            queryArgHolder.employeesCodes(),
+            queryArgHolder.employeesHireDates(),
+            queryArgHolder.employeesGenders(),
+            queryArgHolder.employeesBirthDates(),
+            queryArgHolder.componentsIds(),
+            queryArgHolder.componentEmployeeIds(),
+            queryArgHolder.componentsAmounts(),
+            queryArgHolder.componentsCurrencies(),
+            queryArgHolder.componentsStartDates(),
+            queryArgHolder.componentsEndDates());
+
+    // after successful insert, increase sequences
+    if (queryArgHolder.employeesIds().length > 0) {
+      batchJobCache.getStatistics().updatePersonSequence(queryArgHolder.employeesIds().length);
+    }
+    if (queryArgHolder.componentsIds().length > 0) {
+      batchJobCache.getStatistics().updateComponentSequence(queryArgHolder.componentsIds().length);
+    }
+
+    log.info(
+        "INSERTED {} ROWS TO DB IN '{}' ms", rowsInserted, System.currentTimeMillis() - startTime);
+
+    return List.of(queryArgHolder.employeesCodes());
+  }
+
+  /**
+   * this method makes sure that 'person' table is updated properly to avoid having duplicate pk
+   * keys and updates current job statistics with current sequences to allow better track of the db
+   */
+  private void updatePersonTablePKSequence() {
+    // if sequence count is not present in statistics, we will fetch it and update accordingly
+    if (batchJobCache.getStatistics().getPersonSequence().get() == 0) {
+      String maxEmployeeIdQuery = "SELECT MAX (p.id) FROM person p";
+
+      Long maxEmployeeId = jdbcTemplate.queryForObject(maxEmployeeIdQuery, Long.class);
+
+      // if 'person' table is empty, maxEmployeeId will be returned as null
+      if (maxEmployeeId == null) {
+        // table is empty, counter is currently 0 and needs to be increased to 1
+        batchJobCache.getStatistics().getPersonSequence().incrementAndGet();
+      } else {
+        // table is not empty, counter has some value and we increase it by 1
+        batchJobCache.getStatistics().updatePersonSequence(maxEmployeeId + 1);
+      }
+    } else {
+      // if sequence count is present in statistics, we will increase counter before unnest insert
+      batchJobCache.getStatistics().getPersonSequence().get();
+    }
+  }
+
+  /**
+   * this method makes sure that 'salary_component' table is updated properly to avoid having
+   * duplicate pk keys and updates current job statistics with current sequences to allow better
+   * track of the db
+   */
+  private void updateSalaryComponentTablePKSequence() {
+    // if sequence count is not present in statistics, we will fetch it and update accordingly
+    if (batchJobCache.getStatistics().getComponentSequence().get() == 0) {
+      String maxComponentQuery = "SELECT MAX (sc.id) FROM salary_component sc";
+
+      Long maxComponentId = jdbcTemplate.queryForObject(maxComponentQuery, Long.class);
+
+      // if 'salary_component' table is empty, maxEmployeeId will be returned as null
+      if (maxComponentId == null) {
+        // table is empty, counter is currently 0 and needs to be increased to 1
+        batchJobCache.getStatistics().getComponentSequence().incrementAndGet();
+      } else {
+        // table is not empty, counter has some value and we increase it by 1
+        batchJobCache.getStatistics().updateComponentSequence(maxComponentId + 1);
+      }
+    } else {
+      // if sequence count is present in statistics, we will increase counter before unnest insert
+      batchJobCache.getStatistics().getComponentSequence().get();
+    }
+  }
+
+  // todo maybe move it to new service later
+  private QueryArgHolder buildQueryArgs(List<EmployeeEntity> employees) {
     // employees
     Long[] employeesIds =
         employees.stream().map(employee -> employee.getId().longValue()).toArray(Long[]::new);
@@ -103,96 +192,19 @@ public class BulkInsertService {
             .map(component -> Date.valueOf(component.getEndDate()))
             .toArray(Date[]::new);
 
-    // query that inserts in both 'person' and 'salary_component' table applying PG unnest ability
-    String insertPersonAndSalaryComponentsSql =
-        """
-            INSERT INTO person (id, full_name, employee_code, hire_date, gender, birth_date)
-            SELECT * FROM unnest(?::numeric[], ?::text[], ?::text[], ?::date[], ?::text[],?::date[]);
-
-            INSERT INTO salary_component (id, person_id, amount, currency, start_date, end_date)
-            SELECT *  FROM unnest(?::numeric[], ?::numeric[], ?::numeric[], ?::text[], ?::date[], ?::date[]);
-            """;
-
-    var startTime = System.currentTimeMillis();
-    // execute query
-    var rowsInserted =
-        jdbcTemplate.update(
-            insertPersonAndSalaryComponentsSql,
-            employeesIds,
-            employeesFullNames,
-            employeesCodes,
-            employeesHireDates,
-            employeesGenders,
-            employeesBirthDates,
-            componentsIds,
-            componentEmployeeIds,
-            componentsAmounts,
-            componentsCurrencies,
-            componentsStartDates,
-            componentsEndDates);
-
-    // after successful insert, increase sequences
-    if (employeesIds.length > 0) {
-      batchJobCache.getStatistics().updatePersonSequence(employeesIds.length);
-    }
-    if (componentsIds.length > 0) {
-      batchJobCache.getStatistics().updateComponentSequence(componentsIds.length);
-    }
-
-    log.info(
-        "INSERTED {} ROWS TO DB IN '{}' ms", rowsInserted, System.currentTimeMillis() - startTime);
-
-    return List.of(employeesCodes);
-  }
-
-  /**
-   * this method makes sure that 'person' table is updated properly to avoid having duplicate pk
-   * keys and updates current job statistics with current sequences to allow better track of the db
-   */
-  private void updatePersonTablePKSequence() {
-    // if sequence count is not present in statistics, we will fetch it and update accordingly
-    if (batchJobCache.getStatistics().getPersonSequence().get() == 0) {
-      String maxEmployeeIdQuery = "SELECT MAX (p.id) FROM person p";
-
-      Long maxEmployeeId = jdbcTemplate.queryForObject(maxEmployeeIdQuery, Long.class);
-
-      // if 'person' table is empty, maxEmployeeId will be returned as null
-      if (maxEmployeeId == null) {
-        // table is empty, counter is currently 0 and needs to be increased to 1
-        batchJobCache.getStatistics().getPersonSequence().incrementAndGet();
-      } else {
-        // table is not empty, counter has some value and we increase it by 1
-        batchJobCache.getStatistics().updatePersonSequence(maxEmployeeId + 1);
-      }
-    } else {
-      // if sequence count is present in statistics, we will increase counter before unnest insert
-      batchJobCache.getStatistics().getPersonSequence().get();
-    }
-  }
-
-  /**
-   * this method makes sure that 'salary_component' table is updated properly to avoid having
-   * duplicate pk keys and updates current job statistics with current sequences to allow better
-   * track of the db
-   */
-  private void updateSalaryComponentTablePKSequence() {
-    // if sequence count is not present in statistics, we will fetch it and update accordingly
-    if (batchJobCache.getStatistics().getComponentSequence().get() == 0) {
-      String maxComponentQuery = "SELECT MAX (sc.id) FROM salary_component sc";
-
-      Long maxComponentId = jdbcTemplate.queryForObject(maxComponentQuery, Long.class);
-
-      // if 'salary_component' table is empty, maxEmployeeId will be returned as null
-      if (maxComponentId == null) {
-        // table is empty, counter is currently 0 and needs to be increased to 1
-        batchJobCache.getStatistics().getComponentSequence().incrementAndGet();
-      } else {
-        // table is not empty, counter has some value and we increase it by 1
-        batchJobCache.getStatistics().updateComponentSequence(maxComponentId + 1);
-      }
-    } else {
-      // if sequence count is present in statistics, we will increase counter before unnest insert
-      batchJobCache.getStatistics().getComponentSequence().get();
-    }
+    return QueryArgHolder.builder()
+        .employeesIds(employeesIds)
+        .employeesFullNames(employeesFullNames)
+        .employeesCodes(employeesCodes)
+        .employeesHireDates(employeesHireDates)
+        .employeesGenders(employeesGenders)
+        .employeesBirthDates(employeesBirthDates)
+        .componentsIds(componentsIds)
+        .componentEmployeeIds(componentEmployeeIds)
+        .componentsAmounts(componentsAmounts)
+        .componentsCurrencies(componentsCurrencies)
+        .componentsStartDates(componentsStartDates)
+        .componentsEndDates(componentsEndDates)
+        .build();
   }
 }
