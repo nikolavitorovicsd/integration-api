@@ -24,11 +24,11 @@ public class PayComponentBuilder {
     // compensation
     Long compensationAmount = getLongFromCsvObject(employeeRecord.getCompensationAmount(), true);
     Currency compensationCurrency =
-        Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), true);
+        Currency.getCurrencyFromCsvObject(employeeRecord.getCompensationCurrency(), true);
     LocalDate compensationStartDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayStartDate(), true);
+        DateUtils.getLocalDateFromCsvObject(employeeRecord.getCompensationStartDate(), true);
     LocalDate compensationEndDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayEndDate(), true);
+        DateUtils.getLocalDateFromCsvObject(employeeRecord.getCompensationEndDate(), true);
 
     var compensationComponent =
         buildPayComponent(

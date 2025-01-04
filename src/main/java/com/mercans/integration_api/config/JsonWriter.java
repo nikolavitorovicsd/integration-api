@@ -58,6 +58,7 @@ public class JsonWriter implements ItemWriter<Action> {
   @Override
   public void write(Chunk<? extends Action> chunk) throws IOException {
     // create directory if missing
+    var xx = System.currentTimeMillis();
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
     if (log.isDebugEnabled()) {
@@ -76,7 +77,11 @@ public class JsonWriter implements ItemWriter<Action> {
     // increase json write lines count
     batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(chunk.size());
 
-    List<EmployeeEntity> hireEmployees = buildInsertList(chunk);
+    List<Action> changeActions = new ArrayList<>();
+    List<Action> terminateActions = new ArrayList<>();
+
+    List<EmployeeEntity> hireEmployees = buildInsertList(chunk, changeActions, terminateActions);
+    log.info("PREPARED FILE AND HIRE EMPLOYEES IN '{}' ms", System.currentTimeMillis() - xx);
     // includes only insert changes
     if (isNotEmpty(hireEmployees)) {
       // saving to db
@@ -85,12 +90,9 @@ public class JsonWriter implements ItemWriter<Action> {
       batchJobCache.getStatistics().getEmployeeCodesThatExistInDb().addAll(insertedEmployees);
     }
 
-    // todo
-    //    List<EmployeeEntity> updateEmployees = buildUpdateList(chunk);
-    //    // includes only update changes
-    //    if (isNotEmpty(updateEmployees)) {
-    //      // todo
-    //    }
+    bulkInsertService.bulkUpdate(changeActions);
+
+    bulkInsertService.bulkTerminate(terminateActions);
 
     // problematic corner case that rarely happens: work when last chunk size matches provided job
     // chunk size
@@ -112,17 +114,36 @@ public class JsonWriter implements ItemWriter<Action> {
     objectMapper.writeValue(jsonFilePath, jsonResponse);
   }
 
-  //  private List<EmployeeEntity> buildUpdateList(Chunk<? extends Action> chunk) {
-  //
-  //  }
-
-  private List<EmployeeEntity> buildInsertList(Chunk<? extends Action> chunk) {
+  // this method separates HIRE actions from TERMINATE/CHANGE actions
+  private List<EmployeeEntity> buildInsertList(
+      Chunk<? extends Action> chunk, List<Action> changeActions, List<Action> terminateActions) {
     return chunk.getItems().stream()
-        .filter(action -> action.getAction().equals(ActionType.HIRE))
+        // first filter out all actions that shouldn't be processed to db
+        .filter(action -> !action.shouldBeSkippedDuringWrite())
+        // second return action if its HIRE, otherwise return null and update updateActions list
+        .map(action -> getHireActionOrUpdateLists(action, changeActions, terminateActions))
+        .filter(Objects::nonNull)
         .map(HireAction.class::cast)
-        .filter(hireAction -> !hireAction.shouldBeSkippedDuringWrite())
+        // third build new entities to be inserted into db
         .map(this::buildHirePersonEntity)
         .toList();
+  }
+
+  // if action is HIRE, we return it, if its not, we add it to changeActions
+  // or terminateActions list to use it later for bulkUpdate/bulkTerminate
+  private Action getHireActionOrUpdateLists(
+      Action action, List<Action> changeActions, List<Action> terminateActions) {
+    if (action.getAction().equals(ActionType.HIRE)) {
+      return action;
+    } else if (action.getAction().equals(ActionType.CHANGE)) {
+      // CHANGE action is skipped but added to list
+      changeActions.add(action);
+      return null;
+    } else {
+      // TERMINATE action is skipped but added to list
+      terminateActions.add(action);
+      return null;
+    }
   }
 
   private EmployeeEntity buildHirePersonEntity(HireAction hireAction) {
@@ -132,14 +153,16 @@ public class JsonWriter implements ItemWriter<Action> {
         .employeeFullName(hireAction.employeeFullName())
         .employeGender(hireAction.employeGender())
         .employeeBirthDate(hireAction.employeeBirthDate())
-        .salaryComponentEntities(getSalaryComponents(hireAction))
+        .salaryComponents(getSalaryComponents(hireAction))
         .build();
   }
 
+  // todo extract to some mapper
   private List<SalaryComponentEntity> getSalaryComponents(HireAction hireAction) {
     return hireAction.payComponents().stream().map(this::buildSalaryComponentEntity).toList();
   }
 
+  // todo extract to some mapper
   private SalaryComponentEntity buildSalaryComponentEntity(PayComponent payComponent) {
     return SalaryComponentEntity.builder()
         .amount(payComponent.amount())

@@ -37,7 +37,7 @@ public class CsvReadService {
     // todo refactor this into new step
     var pathToStoredCsvFile =
         Optional.ofNullable(fileService.saveFileToLocalDirectory(file))
-            .orElseThrow(() -> new RuntimeException("DOESNT WORK!")); // todo
+            .orElseThrow(() -> new RuntimeException("DOESNT WORK!"));
 
     var jsonResponseUuid = UUID.randomUUID();
 

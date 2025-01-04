@@ -93,7 +93,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             saveException(
                 String.format(
                     "Record with employeeCode '%s' and name '%s' doesn't exists in db neither in already processed CSV lines and can't be deleted!",
-                    employeeRecord.getEmployeeCode()));
+                    employeeRecord.getEmployeeCode(), employeeRecord.getEmployeeName()));
             return terminateAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
         }

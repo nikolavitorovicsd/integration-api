@@ -11,7 +11,6 @@ import com.mercans.integration_api.utils.DateUtils;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 
 public class HireActionMapper extends PayComponentBuilder implements ActionMapper {
@@ -23,7 +22,6 @@ public class HireActionMapper extends PayComponentBuilder implements ActionMappe
       throw new UnskippableCsvException(
           "Missing 'employeeCode' and 'hireDate' for 'CHANGE' action");
     }
-
     // we will try to convert date and if conversion fails it will skip whole row, otherwise
     // it will set it as null which will also skip the row
     LocalDate hireDate =
@@ -44,7 +42,7 @@ public class HireActionMapper extends PayComponentBuilder implements ActionMappe
     var components =
         buildPayComponents(employeeRecord).stream()
             .filter(component -> isEmpty(validator.validate(component)))
-            .collect(Collectors.toSet());
+            .toList();
 
     return HireAction.builder()
         .employeeCode(employeeCode)

@@ -37,7 +37,7 @@ public class ChangeActionMapper extends PayComponentBuilder implements ActionMap
     var components =
         buildPayComponents(employeeRecord).stream()
             .filter(component -> isEmpty(validator.validate(component)))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
     return ChangeAction.builder()
         .employeeCode(employeeCode)

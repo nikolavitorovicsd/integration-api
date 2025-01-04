@@ -16,4 +16,10 @@ public interface Action {
   // todo DONT FORGET TO HANDLE BIRTH DATE
   @JsonIgnore
   ActionType getAction();
+
+  @JsonIgnore
+  public String getEmployeeCode();
+
+  @JsonIgnore
+  public boolean shouldBeSkippedDuringWrite();
 }

@@ -49,7 +49,10 @@ public class EmployeeEntity {
   @Column(name = "birth_date")
   private LocalDate employeeBirthDate;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @Column(name = "termination_date")
+  private LocalDate employeeTerminationDate;
+
+  @OneToMany(cascade = CascadeType.MERGE, orphanRemoval = true, fetch = FetchType.LAZY)
   @JoinColumn(name = "person_id", nullable = false)
-  private List<SalaryComponentEntity> salaryComponentEntities;
+  private List<SalaryComponentEntity> salaryComponents;
 }

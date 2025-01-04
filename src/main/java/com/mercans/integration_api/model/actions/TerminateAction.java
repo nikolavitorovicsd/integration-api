@@ -17,4 +17,9 @@ public record TerminateAction(
   public ActionType getAction() {
     return ActionType.TERMINATE;
   }
+
+  @Override
+  public String getEmployeeCode() {
+    return employeeCode;
+  }
 }

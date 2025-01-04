@@ -20,14 +20,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class SpringBatchConfiguration {
 
-  // todo refactor steps, separate concerns of uploading removing files differently, files could be
-  // removed right after reading
+  // todo refactor steps, separate concerns of uploading removing files differently
   @Bean
   Job readCsvJob(
       JobRepository jobRepository,
       Step readCsvStep,
-      RemoveUploadedCsvFileAfterJobListener removeUploadedCsvFileAfterJobListener,
       CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener,
+      RemoveUploadedCsvFileAfterJobListener removeUploadedCsvFileAfterJobListener,
       AddStatisticsBeforeJobAndRemoveAfterJobListener
           addStatisticsBeforeJobAndRemoveAfterJobListener) {
     return new JobBuilder("readCsvJob", jobRepository)
@@ -47,7 +46,7 @@ public class SpringBatchConfiguration {
       JsonProcessor jsonProcessor,
       JsonWriter jsonWriter,
       @Value("${batch-config.chunk-size}") int chunkSize,
-      @Value("${batch-config.skip-limit}") int skipLimit) { // todo
+      @Value("${batch-config.skip-limit}") int skipLimit) { // todo skipLimit might not be needed
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)

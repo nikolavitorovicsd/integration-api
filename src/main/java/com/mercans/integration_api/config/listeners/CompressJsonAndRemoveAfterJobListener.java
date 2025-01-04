@@ -40,7 +40,6 @@ public class CompressJsonAndRemoveAfterJobListener implements JobExecutionListen
       FileUtils.deleteFile(sourceJsonPath);
       log.info("Deleted json file '{}'.", jsonFileName);
     } catch (IOException e) {
-      // todo refactor
       log.error("Exception during compressing and removing of json: {}", e.getMessage());
       throw new RuntimeException(e);
     }
