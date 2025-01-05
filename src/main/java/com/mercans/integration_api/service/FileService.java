@@ -30,7 +30,7 @@ public class FileService {
 
       return targetLocation;
     } catch (IOException e) {
-      log.error("Failed to upload the file:{}", e.getMessage());
+      log.error("Failed to upload the file: {}", e.getMessage());
       return null;
     }
   }

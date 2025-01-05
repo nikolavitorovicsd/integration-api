@@ -48,7 +48,7 @@ public class Queries {
           SELECT * FROM unnest(?::numeric[], ?::numeric[], ?::numeric[], ?::text[], ?::date[], ?::date[]);
           """;
 
-  // query that deletes from 'salary_component' table applying PG unnest ability
+  // query that sets delete_date to 'salary_component' table applying PG unnest ability
   public static final String UNNEST_DELETE_FROM_SALARY_COMPONENT_QUERY =
       """
           UPDATE salary_component AS sc

@@ -1,7 +1,6 @@
 package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.*;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.config.listeners.BatchJobCache;
@@ -79,19 +78,13 @@ public class JsonWriter implements ItemWriter<Action> {
 
     List<Action> changeActions = new ArrayList<>();
     List<Action> terminateActions = new ArrayList<>();
-
     List<EmployeeEntity> hireEmployees = buildInsertList(chunk, changeActions, terminateActions);
+
+    // todo remove
     log.info("PREPARED FILE AND HIRE EMPLOYEES IN '{}' ms", System.currentTimeMillis() - xx);
-    // includes only insert changes
-    if (isNotEmpty(hireEmployees)) {
-      // saving to db
-      var insertedEmployees = bulkInsertService.bulkInsert(hireEmployees);
-      // updating the list employeeCodesThatExistInDb to have track in next chunk what was added
-      batchJobCache.getStatistics().getEmployeeCodesThatExistInDb().addAll(insertedEmployees);
-    }
 
+    bulkInsertService.bulkInsert(hireEmployees);
     bulkInsertService.bulkUpdate(changeActions);
-
     bulkInsertService.bulkTerminate(terminateActions);
 
     // problematic corner case that rarely happens: work when last chunk size matches provided job
