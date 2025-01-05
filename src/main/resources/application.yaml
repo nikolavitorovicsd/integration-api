@@ -17,21 +17,6 @@ spring:
   flyway:
     locations:
       - classpath:/db/migration
-  jpa:
-    properties:
-      hibernate:
-#      https://vladmihalcea.com/how-to-batch-insert-and-update-statements-with-hibernate/
-#      https://stackoverflow.com/questions/62411431/spring-batch-jpa-bulk-insert-eats-performance-when-using-generationtype-identity?rq=3
-        order_inserts : true # allows to group INSERT statements in batch and speed up insert
-        order_updates: true # allows to group UPDATE statements in batch and speed up insert
-        jdbc:
-          batch_size: 50 # hibernate batch size -> determines how many rows are inserted/updated in bulk
-          batch_versioned_data: true # allows to enable UPDATE batching
-        id:
-          optimizer:
-            pooled:
-              preferred: pooled-lo
-
 
 # provides nice logging for hibernate with additional information like batch, type, batsh size
 logging:
@@ -50,7 +35,6 @@ server:
     enabled: true
     mime-types: application/json
     min-response-size: 1
-
 
 # custom batch config
 batch-config:

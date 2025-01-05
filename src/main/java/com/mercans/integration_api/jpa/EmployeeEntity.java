@@ -18,17 +18,7 @@ import lombok.*;
 @EqualsAndHashCode
 public class EmployeeEntity {
 
-  // spotless:off
-  // following links were used to optimize bulk insert performancec:
-  // https://stackoverflow.com/questions/27697810/why-does-hibernate-disable-insert-batching-when-using-an-identity-identifier-gen?noredirect=1&lq=1
-  // https://vladmihalcea.com/how-to-batch-insert-and-update-statements-with-hibernate/
-  // https://vladmihalcea.com/migrate-hilo-hibernate-pooled/
-  // spotless:on
-
-  @Id
-  //  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "person_id_seq")
-  //  @SequenceGenerator(name = "person_id_seq", sequenceName = "person_id_seq", allocationSize = 1)
-  private BigInteger id;
+  @Id private BigInteger id;
 
   @NotNull
   @Column(name = "employee_code", updatable = false)

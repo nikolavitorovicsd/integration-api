@@ -17,13 +17,7 @@ import lombok.*;
 @Setter
 public class SalaryComponentEntity {
 
-  @Id
-  //  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "salary_component_id_seq")
-  //  @SequenceGenerator(
-  //      name = "salary_component_id_seq",
-  //      sequenceName = "salary_component_id_seq",
-  //      allocationSize = 1)
-  private BigInteger id;
+  @Id private BigInteger id;
 
   @NotNull
   @Column(name = "amount")
