@@ -13,7 +13,6 @@ import com.mercans.integration_api.model.enums.ActionType;
 })
 public interface Action {
 
-  // todo DONT FORGET TO HANDLE BIRTH DATE
   @JsonIgnore
   ActionType getAction();
 

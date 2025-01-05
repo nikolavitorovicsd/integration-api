@@ -31,7 +31,7 @@ public class ChangeActionMapper extends PayComponentBuilder implements ActionMap
     Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), true);
 
     LocalDate birthDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getEmployeeContractStartDate(), true);
+        DateUtils.getBirthDateFromCsvObject(employeeRecord.getEmployeeBirthDate(), true);
 
     // we validate payComponents and if any have violations we filter them out
     var components =

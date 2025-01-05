@@ -33,6 +33,9 @@ public class EmployeeRecord implements Serializable {
   @CsvBindByName(column = "contract_endDate")
   Object employeeContractEndDate;
 
+  @CsvBindByName(column = "worker_personalCode")
+  Object employeeBirthDate;
+
   // pay
   @CsvBindByName(column = "pay_amount")
   Object payAmount;

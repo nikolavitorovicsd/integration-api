@@ -71,30 +71,33 @@ public class QueryArgService {
     }
   }
 
-  // todo check if it can be cleaner
   public QueryArgHolder buildPersonAndSalaryComponentInsertQueryArgs(
       List<EmployeeEntity> employees) {
     // employees
     Long[] employeesIds = employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
+
     String[] employeesCodes =
         employees.stream().map(EmployeeEntity::getEmployeeCode).toArray(String[]::new);
+
     Date[] employeesHireDates =
         employees.stream()
             .map(employee -> Date.valueOf(employee.getEmployeeHireDate()))
             .toArray(Date[]::new);
+
     String[] employeesFullNames =
         employees.stream().map(EmployeeEntity::getEmployeeFullName).toArray(String[]::new);
+
     String[] employeesGenders =
         employees.stream()
             .map(
                 employee ->
                     Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
             .toArray(String[]::new);
-    Date[] employeesBirthDates = null;
-    // todo finish implementation
-    //        employees.stream()
-    //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
-    //            .toArray(Date[]::new);
+
+    Date[] employeesBirthDates =
+        employees.stream()
+            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
+            .toArray(Date[]::new);
 
     // components
     Long[] componentsIds =
@@ -102,6 +105,7 @@ public class QueryArgService {
             .flatMap(employee -> employee.getSalaryComponents().stream())
             .map(SalaryComponentEntity::getId)
             .toArray(Long[]::new);
+
     Long[] componentEmployeeIds =
         employees.stream()
             .flatMap(employee -> employee.getSalaryComponents().stream())

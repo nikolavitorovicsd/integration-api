@@ -154,11 +154,10 @@ public class BulkInsertService {
                     Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
             .toArray(String[]::new);
 
-    Date[] employeesBirthDates = null;
-    // todo handle later
-    //        employees.stream()
-    //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
-    //            .toArray(Date[]::new);
+    Date[] employeesBirthDates =
+        updateEmployees.stream()
+            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
+            .toArray(Date[]::new);
 
     var rowsUpdated =
         jdbcTemplate.update(

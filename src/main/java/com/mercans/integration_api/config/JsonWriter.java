@@ -150,12 +150,10 @@ public class JsonWriter implements ItemWriter<Action> {
         .build();
   }
 
-  // todo extract to some mapper
   private List<SalaryComponentEntity> getSalaryComponents(HireAction hireAction) {
     return hireAction.payComponents().stream().map(this::buildSalaryComponentEntity).toList();
   }
 
-  // todo extract to some mapper
   private SalaryComponentEntity buildSalaryComponentEntity(PayComponent payComponent) {
     return SalaryComponentEntity.builder()
         .amount(payComponent.amount())
