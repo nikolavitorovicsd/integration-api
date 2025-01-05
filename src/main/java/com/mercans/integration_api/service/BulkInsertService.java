@@ -15,10 +15,8 @@ import com.mercans.integration_api.model.actions.TerminateAction;
 import com.mercans.integration_api.model.enums.ActionType;
 import java.math.BigInteger;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -162,7 +160,7 @@ public class BulkInsertService {
                     Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
             .toArray(String[]::new);
     Date[] employeesBirthDates = null;
-    // todo handle later
+    // todo finish implementation
     //        employees.stream()
     //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
     //            .toArray(Date[]::new);
@@ -184,6 +182,7 @@ public class BulkInsertService {
             .flatMap(employee -> employee.getSalaryComponents().stream())
             .map(SalaryComponentEntity::getAmount)
             .toArray(Long[]::new);
+
     String[] componentsCurrencies =
         employees.stream()
             .flatMap(employee -> employee.getSalaryComponents().stream())
@@ -239,6 +238,41 @@ public class BulkInsertService {
     removeOldComponentsAndAddNew(changeActions);
   }
 
+  private void updatePersonTableOnly(List<EmployeeEntity> updateEmployees) {
+
+    var startTime = System.currentTimeMillis();
+
+    String[] employeesCodes =
+        updateEmployees.stream().map(EmployeeEntity::getEmployeeCode).toArray(String[]::new);
+
+    String[] employeesFullNames =
+        updateEmployees.stream().map(EmployeeEntity::getEmployeeFullName).toArray(String[]::new);
+
+    String[] employeesGenders =
+        updateEmployees.stream()
+            .map(
+                employee ->
+                    Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
+            .toArray(String[]::new);
+
+    Date[] employeesBirthDates = null;
+    // todo handle later
+    //        employees.stream()
+    //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
+    //            .toArray(Date[]::new);
+
+    var rowsUpdated =
+        jdbcTemplate.update(
+            UNNEST_UPDATE_PERSON_QUERY,
+            employeesCodes,
+            employeesFullNames,
+            employeesGenders,
+            employeesBirthDates);
+
+    log.info(
+        "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
+  }
+
   // this method should remove all components for specific employee if new action has list of
   // components that is not empty
   private void removeOldComponentsAndAddNew(List<Action> changeActions) {
@@ -277,7 +311,8 @@ public class BulkInsertService {
     var removedSalaryComponentsCount =
         jdbcTemplate.update(
             UNNEST_DELETE_FROM_SALARY_COMPONENT_QUERY,
-            (Object) employeeIdsForWhichWeNeedToRemoveSalaryComponents);
+            LocalDate.now(),
+            employeeIdsForWhichWeNeedToRemoveSalaryComponents);
 
     log.info(
         "REMOVED COMPONENT SALARIES '{}' ROWS TO DB IN '{}' ms",
@@ -289,28 +324,8 @@ public class BulkInsertService {
     Long[] componentIdsNew =
         getNewSequencesForNewComponents(actionsForWhichWeUpdatePersonComponents);
 
-    var totalComponents =
-        actionsForWhichWeUpdatePersonComponents.stream()
-            .mapToLong(action -> action.payComponents().size())
-            .sum();
-
-    // sequence array lenght should be same to number of pay components to be added
-    if (componentIdsNew.length != totalComponents) {
-      throw new RuntimeException("SEQUENCE WAS NOT CALCULATED PROPERLY!");
-    }
-
-    List<Long> employeeIds = new ArrayList<>();
-    actionsForWhichWeUpdatePersonComponents.forEach(
-        action -> {
-          action
-              .payComponents()
-              .forEach(
-                  component -> {
-                    employeeIds.add(employeeCodeToIdMap.get(action.getEmployeeCode()).longValue());
-                  });
-        });
-
-    Long[] componentEmployeeIds = employeeIds.toArray(Long[]::new);
+    Long[] componentEmployeeIds =
+        getComponentEmployeeIds(actionsForWhichWeUpdatePersonComponents, employeeCodeToIdMap);
 
     Long[] componentsAmounts =
         actionsForWhichWeUpdatePersonComponents.stream()
@@ -352,79 +367,6 @@ public class BulkInsertService {
         System.currentTimeMillis() - addComponentsStartTime);
   }
 
-  private Long[] getNewSequencesForNewComponents(
-      List<ChangeAction> actionsForWhichWeUpdatePersonComponents) {
-    updateSalaryComponentTablePKSequence();
-
-    var totalComponentCountToBeAdded =
-        actionsForWhichWeUpdatePersonComponents.stream()
-            .mapToLong(action -> action.payComponents().size())
-            .sum();
-    List<Long> newSequenceList = new ArrayList<>();
-    for (int i = 0; i < totalComponentCountToBeAdded; i++) {
-      var currentSequence = batchJobCache.getStatistics().getComponentSequence().incrementAndGet();
-      newSequenceList.add(currentSequence);
-    }
-    return newSequenceList.toArray(Long[]::new);
-  }
-
-  private void updatePersonTableOnly(List<EmployeeEntity> updateEmployees) {
-
-    var startTime = System.currentTimeMillis();
-
-    String[] employeesCodes =
-        updateEmployees.stream().map(EmployeeEntity::getEmployeeCode).toArray(String[]::new);
-
-    String[] employeesFullNames =
-        updateEmployees.stream().map(EmployeeEntity::getEmployeeFullName).toArray(String[]::new);
-
-    String[] employeesGenders =
-        updateEmployees.stream()
-            .map(
-                employee ->
-                    Optional.ofNullable(employee.getEmployeGender()).map(Enum::name).orElse(null))
-            .toArray(String[]::new);
-
-    Date[] employeesBirthDates = null;
-    // todo handle later
-    //        employees.stream()
-    //            .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
-    //            .toArray(Date[]::new);
-
-    var rowsUpdated =
-        jdbcTemplate.update(
-            UNNEST_UPDATE_PERSON_QUERY,
-            employeesCodes,
-            employeesFullNames,
-            employeesGenders,
-            employeesBirthDates);
-
-    log.info(
-        "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
-  }
-
-  private EmployeeEntity buildChangePersonEntity(ChangeAction changeAction) {
-    return EmployeeEntity.builder()
-        .employeeCode(changeAction.getEmployeeCode())
-        .employeeFullName(changeAction.employeeFullName())
-        .employeGender(changeAction.employeGender())
-        .employeeBirthDate(changeAction.employeeBirthDate())
-        .build();
-  }
-
-  private List<SalaryComponentEntity> buildComponentEntities(List<PayComponent> payComponents) {
-    return payComponents.stream().map(this::buildSalaryComponentEntity).toList();
-  }
-
-  private SalaryComponentEntity buildSalaryComponentEntity(PayComponent payComponent) {
-    return SalaryComponentEntity.builder()
-        .amount(payComponent.amount())
-        .currency(payComponent.currency())
-        .startDate(payComponent.startDate())
-        .endDate(payComponent.endDate())
-        .build();
-  }
-
   public void bulkTerminate(List<Action> terminateActions) {
     if (terminateActions.isEmpty()) {
       // nothing to update
@@ -448,5 +390,53 @@ public class BulkInsertService {
 
     log.info(
         "TERMINATED {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
+  }
+
+  // method that calculates following sequence array for 'salary_component' in order to insert new
+  // rows
+  // without creating a gap between PKs
+  private Long[] getNewSequencesForNewComponents(
+      List<ChangeAction> actionsForWhichWeUpdatePersonComponents) {
+    updateSalaryComponentTablePKSequence();
+
+    var totalComponentCountToBeAdded =
+        actionsForWhichWeUpdatePersonComponents.stream()
+            .mapToLong(action -> action.payComponents().size())
+            .sum();
+
+    List<Long> newSequenceList = new ArrayList<>();
+    for (int i = 0; i < totalComponentCountToBeAdded; i++) {
+      var currentSequence = batchJobCache.getStatistics().getComponentSequence().get();
+      newSequenceList.add(currentSequence);
+      batchJobCache.getStatistics().getComponentSequence().incrementAndGet();
+    }
+
+    return newSequenceList.toArray(Long[]::new);
+  }
+
+  // this method maps employeeId ('person_id') to each new salary_component to be inserted for
+  // person
+  private Long[] getComponentEmployeeIds(
+      List<ChangeAction> actionsForWhichWeUpdatePersonComponents,
+      Map<String, BigInteger> employeeCodeToIdMap) {
+    List<Long> employeeIds = new ArrayList<>();
+    actionsForWhichWeUpdatePersonComponents.forEach(
+        action ->
+            action
+                .payComponents()
+                .forEach(
+                    component ->
+                        employeeIds.add(
+                            employeeCodeToIdMap.get(action.getEmployeeCode()).longValue())));
+    return employeeIds.toArray(Long[]::new);
+  }
+
+  private EmployeeEntity buildChangePersonEntity(ChangeAction changeAction) {
+    return EmployeeEntity.builder()
+        .employeeCode(changeAction.getEmployeeCode())
+        .employeeFullName(changeAction.employeeFullName())
+        .employeGender(changeAction.employeGender())
+        .employeeBirthDate(changeAction.employeeBirthDate())
+        .build();
   }
 }

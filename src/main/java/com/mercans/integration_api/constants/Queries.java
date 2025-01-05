@@ -5,14 +5,14 @@ public class Queries {
   // query that fetches last inserted 'person' PK
   public static final String MAX_PERSON_ID_QUERY =
       """
-            SELECT MAX (p.id) FROM person p
-            """;
+          SELECT MAX (p.id) FROM person p
+          """;
 
   // query that fetches last inserted 'salary_component' PK
   public static final String MAX_SALARY_COMPONENT_ID_QUERY =
       """
-            SELECT MAX (sc.id) FROM salary_component sc
-            """;
+          SELECT MAX (sc.id) FROM salary_component sc
+          """;
 
   // query that inserts in both 'person' and 'salary_component' table applying PG unnest ability
   public static final String UNNEST_INSERT_INTO_PERSON_AND_SALARY_COMPONENT_QUERY =
@@ -51,7 +51,8 @@ public class Queries {
   // query that deletes from 'salary_component' table applying PG unnest ability
   public static final String UNNEST_DELETE_FROM_SALARY_COMPONENT_QUERY =
       """
-          DELETE FROM salary_component AS sc
+          UPDATE salary_component AS sc
+          SET delete_date = ?
           WHERE (sc.person_id) IN (
             SELECT *
             FROM UNNEST(?::NUMERIC[])
@@ -61,17 +62,16 @@ public class Queries {
   // query that terminates contract for 'person'
   public static final String UNNEST_TERMINATE_PERSON_QUERY =
       """
-              UPDATE person
-              SET termination_date = b.terminationDate
-              FROM
-              (
-                  SELECT *
-                      FROM
-                        UNNEST(?::TEXT[], ?::DATE[])
-                        AS t (employeeCode, terminationDate)
-              ) AS b
+          UPDATE person
+          SET termination_date = b.terminationDate
+          FROM
+          (
+              SELECT *
+                  FROM
+                    UNNEST(?::TEXT[], ?::DATE[])
+                    AS t (employeeCode, terminationDate)
+          ) AS b
 
-              WHERE person.employee_code = b.employeeCode
-
-              """;
+          WHERE person.employee_code = b.employeeCode
+          """;
 }
