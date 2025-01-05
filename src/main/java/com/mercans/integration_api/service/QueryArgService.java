@@ -10,7 +10,6 @@ import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.QueryArgHolder;
 import com.mercans.integration_api.model.actions.ChangeAction;
-import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,8 +75,7 @@ public class QueryArgService {
   public QueryArgHolder buildPersonAndSalaryComponentInsertQueryArgs(
       List<EmployeeEntity> employees) {
     // employees
-    Long[] employeesIds =
-        employees.stream().map(employee -> employee.getId().longValue()).toArray(Long[]::new);
+    Long[] employeesIds = employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
     String[] employeesCodes =
         employees.stream().map(EmployeeEntity::getEmployeeCode).toArray(String[]::new);
     Date[] employeesHireDates =
@@ -102,12 +100,12 @@ public class QueryArgService {
     Long[] componentsIds =
         employees.stream()
             .flatMap(employee -> employee.getSalaryComponents().stream())
-            .map(component -> component.getId().longValue())
+            .map(SalaryComponentEntity::getId)
             .toArray(Long[]::new);
     Long[] componentEmployeeIds =
         employees.stream()
             .flatMap(employee -> employee.getSalaryComponents().stream())
-            .map(component -> component.getEmployeeId().longValue())
+            .map(SalaryComponentEntity::getEmployeeId)
             .toArray(Long[]::new);
 
     Long[] componentsAmounts =
@@ -152,7 +150,7 @@ public class QueryArgService {
 
   public QueryArgHolder buildSalaryComponentInsertQueryArgs(
       List<ChangeAction> actionsForWhichWeUpdatePersonComponents,
-      Map<String, BigInteger> employeeCodeToIdMap) {
+      Map<String, Long> employeeCodeToIdMap) {
     Long[] newComponentIds =
         getNewSequencesForNewComponents(actionsForWhichWeUpdatePersonComponents);
 
@@ -218,7 +216,7 @@ public class QueryArgService {
   // to be inserted for person
   private Long[] getComponentEmployeeIds(
       List<ChangeAction> actionsForWhichWeUpdatePersonComponents,
-      Map<String, BigInteger> employeeCodeToIdMap) {
+      Map<String, Long> employeeCodeToIdMap) {
     List<Long> employeeIds = new ArrayList<>();
     actionsForWhichWeUpdatePersonComponents.forEach(
         action ->
@@ -226,8 +224,7 @@ public class QueryArgService {
                 .payComponents()
                 .forEach(
                     component ->
-                        employeeIds.add(
-                            employeeCodeToIdMap.get(action.getEmployeeCode()).longValue())));
+                        employeeIds.add(employeeCodeToIdMap.get(action.getEmployeeCode()))));
     return employeeIds.toArray(Long[]::new);
   }
 }

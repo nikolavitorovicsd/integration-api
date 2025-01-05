@@ -3,7 +3,6 @@ package com.mercans.integration_api.jpa;
 import com.mercans.integration_api.model.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.*;
@@ -18,7 +17,7 @@ import lombok.*;
 @EqualsAndHashCode
 public class EmployeeEntity {
 
-  @Id private BigInteger id;
+  @Id private Long id;
 
   @NotNull
   @Column(name = "employee_code", updatable = false)

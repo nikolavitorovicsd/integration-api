@@ -11,7 +11,6 @@ import com.mercans.integration_api.model.actions.Action;
 import com.mercans.integration_api.model.actions.ChangeAction;
 import com.mercans.integration_api.model.actions.TerminateAction;
 import com.mercans.integration_api.model.enums.ActionType;
-import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
@@ -48,13 +47,12 @@ public class BulkInsertService {
 
     for (EmployeeEntity employee : employees) {
       // set current sequence number as person id
-      var employeeId = BigInteger.valueOf(nextEmployeeId);
-      employee.setId(employeeId);
+      employee.setId(nextEmployeeId);
 
       // set the corresponding employee id for each salary component and assign salary component id
       for (SalaryComponentEntity salaryComponent : employee.getSalaryComponents()) {
-        salaryComponent.setId(BigInteger.valueOf(nextSalaryComponentId));
-        salaryComponent.setEmployeeId(employeeId);
+        salaryComponent.setId(nextSalaryComponentId);
+        salaryComponent.setEmployeeId(nextEmployeeId);
         // increment the salary component ID for the next one
         nextSalaryComponentId++;
       }
@@ -204,11 +202,11 @@ public class BulkInsertService {
         employeeRepository.getEmployeesByEmployeeCodes(
             employeesCodesForWhichWeUpdatePersonComponents);
 
-    Map<String, BigInteger> employeeCodeToIdMap =
+    Map<String, Long> employeeCodeToIdMap =
         employees.stream().collect(toMap(EmployeeEntity::getEmployeeCode, EmployeeEntity::getId));
 
     Long[] employeeIdsForWhichWeNeedToRemoveSalaryComponents =
-        employees.stream().map(employee -> employee.getId().longValue()).toArray(Long[]::new);
+        employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
 
     var removedSalaryComponentsCount =
         jdbcTemplate.update(
