@@ -17,14 +17,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@JobScope
+@StepScope
 @Slf4j
 public class JsonWriter implements ItemWriter<Action> {
 
@@ -72,7 +72,12 @@ public class JsonWriter implements ItemWriter<Action> {
     File jsonFilePath = new File(targetJsonPath);
     JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
     // append items to json
-    jsonResponse.payload().addAll(chunk.getItems());
+    jsonResponse
+        .payload()
+        .addAll(
+            chunk.getItems().stream()
+                .filter(action -> !action.shouldBeSkippedDuringWrite())
+                .toList());
     // increase json write lines count
     batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(chunk.size());
 

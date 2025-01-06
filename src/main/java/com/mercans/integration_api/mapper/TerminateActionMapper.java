@@ -1,5 +1,7 @@
 package com.mercans.integration_api.mapper;
 
+import static com.mercans.integration_api.model.EmployeeRecord.CONTRACT_END_DATE;
+
 import com.mercans.integration_api.exception.UnskippableCsvException;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.actions.Action;
@@ -20,7 +22,7 @@ public class TerminateActionMapper implements ActionMapper {
     LocalDate terminationDate =
         Optional.ofNullable(employeeRecord.getEmployeeContractEndDate())
             // if termination date fails to convert, we throw unskippable exception
-            .map(date -> DateUtils.getLocalDateFromCsvObject(date, false))
+            .map(date -> DateUtils.getLocalDateFromCsvObject(date, CONTRACT_END_DATE, false))
             .orElse(LocalDate.now());
 
     return TerminateAction.builder()

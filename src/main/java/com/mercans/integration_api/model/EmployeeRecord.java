@@ -15,50 +15,76 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 public class EmployeeRecord implements Serializable {
 
-  @CsvBindByName(column = "ACTION")
+  public static final EmployeeRecord EMPTY_RECORD = new EmployeeRecord();
+
+  public static final String SYSTEM_ID = "SystemId";
+
+  public static final String ACTION = "ACTION";
+  public static final String WORKER_NAME = "worker_name";
+  public static final String CONTRACT_WORK_START_DATE = "contract_workStartDate";
+  public static final String WORKER_GENDER = "worker_gender";
+  public static final String CONTRACT_WORKER_ID = "contract_workerId";
+  public static final String CONTRACT_END_DATE = "contract_endDate";
+  public static final String WORKER_PERSONAL_CODE = "worker_personalCode";
+
+  // pay
+  public static final String PAY_AMOUNT = "pay_amount";
+  public static final String PAY_CURRENCY = "pay_currency";
+  public static final String PAY_EFFECTIVE_FROM = "pay_effectiveFrom";
+  public static final String PAY_EFFECTIVE_TO = "pay_effectiveTo";
+  // compensation
+  public static final String COMPENSATION_AMOUNT = "compensation_amount";
+  public static final String COMPENSATION_CURRENCY = "compensation_currency";
+  public static final String COMPENSATION_EFFECTIVE_FROM = "compensation_effectiveFrom";
+  public static final String COMPENSATION_EFFECTIVE_TO = "compensation_effectiveTo";
+
+  @CsvBindByName(column = SYSTEM_ID)
+  Object systemId;
+
+  @CsvBindByName(column = ACTION)
   Object action;
 
-  @CsvBindByName(column = "worker_name")
+  @CsvBindByName(column = WORKER_NAME)
   Object employeeName;
 
-  @CsvBindByName(column = "contract_workStartDate")
+  @CsvBindByName(column = CONTRACT_WORK_START_DATE)
   Object employeeContractStartDate;
 
-  @CsvBindByName(column = "worker_gender")
+  @CsvBindByName(column = WORKER_GENDER)
   Object employeeGender;
 
-  @CsvBindByName(column = "contract_workerId")
+  @CsvBindByName(column = CONTRACT_WORKER_ID)
   Object employeeCode;
 
-  @CsvBindByName(column = "contract_endDate")
+  @CsvBindByName(column = CONTRACT_END_DATE)
   Object employeeContractEndDate;
 
-  @CsvBindByName(column = "worker_personalCode")
+  @CsvBindByName(column = WORKER_PERSONAL_CODE)
   Object employeeBirthDate;
 
   // pay
-  @CsvBindByName(column = "pay_amount")
+  @CsvBindByName(column = PAY_AMOUNT)
   Object payAmount;
 
-  @CsvBindByName(column = "pay_currency")
+  @CsvBindByName(column = PAY_CURRENCY)
   Object payCurrency;
 
-  @CsvBindByName(column = "pay_effectiveFrom")
+  @CsvBindByName(column = PAY_EFFECTIVE_FROM)
   Object payStartDate;
 
-  @CsvBindByName(column = "pay_effectiveTo")
+  @CsvBindByName(column = PAY_EFFECTIVE_TO)
   Object payEndDate;
 
   // compensation
-  @CsvBindByName(column = "compensation_amount")
+  @CsvBindByName(column = COMPENSATION_AMOUNT)
   Object compensationAmount;
 
-  @CsvBindByName(column = "compensation_currency")
+  @CsvBindByName(column = COMPENSATION_CURRENCY)
   Object compensationCurrency;
 
-  @CsvBindByName(column = "compensation_effectiveFrom")
+  @CsvBindByName(column = COMPENSATION_EFFECTIVE_FROM)
   Object compensationStartDate;
 
-  @CsvBindByName(column = "compensation_effectiveTo")
+  @CsvBindByName(column = COMPENSATION_EFFECTIVE_TO)
   Object compensationEndDate;
 }

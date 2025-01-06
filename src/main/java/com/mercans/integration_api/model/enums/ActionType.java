@@ -31,16 +31,15 @@ public enum ActionType {
             () -> new ValidationException(String.format("Unsupported ACTION type '%s'", value)));
   }
 
-  public static ActionType getActionTypeFromCsvObject(Object csvValue, boolean skippable) {
+  public static ActionType getActionTypeFromCsvObject(Object csvValue, String fieldName) {
     try {
       String actionStringValue = csvValue.toString();
       return fromClientString(actionStringValue);
     } catch (NullPointerException | ValidationException exception) {
-      if (skippable) {
-        return null;
-      }
       throw new UnskippableCsvException(
-          String.format("Csv value '%s' couldn't be parsed to ActionType", csvValue));
+          String.format(
+              "Csv value '%s' for field '%s' couldn't be parsed to ActionType",
+              csvValue, fieldName));
     }
   }
 }

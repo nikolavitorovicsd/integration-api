@@ -1,5 +1,7 @@
 package com.mercans.integration_api.mapper;
 
+import static com.mercans.integration_api.model.EmployeeRecord.*;
+
 import com.mercans.integration_api.exception.UnskippableCsvException;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.PayComponent;
@@ -12,23 +14,29 @@ public class PayComponentBuilder {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay
-    Long payAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), true);
-    Currency payCurrency = Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), true);
+    Long payAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), PAY_AMOUNT, true);
+    Currency payCurrency =
+        Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), PAY_CURRENCY, true);
     LocalDate payStartDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayStartDate(), true);
+        DateUtils.getLocalDateFromCsvObject(
+            employeeRecord.getPayStartDate(), PAY_EFFECTIVE_FROM, true);
     LocalDate payEndDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayEndDate(), true);
+        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayEndDate(), PAY_EFFECTIVE_TO, true);
 
     var payComponent = buildPayComponent(payAmount, payCurrency, payStartDate, payEndDate);
 
     // compensation
-    Long compensationAmount = getLongFromCsvObject(employeeRecord.getCompensationAmount(), true);
+    Long compensationAmount =
+        getLongFromCsvObject(employeeRecord.getCompensationAmount(), COMPENSATION_AMOUNT, true);
     Currency compensationCurrency =
-        Currency.getCurrencyFromCsvObject(employeeRecord.getCompensationCurrency(), true);
+        Currency.getCurrencyFromCsvObject(
+            employeeRecord.getCompensationCurrency(), COMPENSATION_CURRENCY, true);
     LocalDate compensationStartDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getCompensationStartDate(), true);
+        DateUtils.getLocalDateFromCsvObject(
+            employeeRecord.getCompensationStartDate(), COMPENSATION_EFFECTIVE_FROM, true);
     LocalDate compensationEndDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getCompensationEndDate(), true);
+        DateUtils.getLocalDateFromCsvObject(
+            employeeRecord.getCompensationEndDate(), COMPENSATION_EFFECTIVE_TO, true);
 
     var compensationComponent =
         buildPayComponent(
@@ -47,15 +55,16 @@ public class PayComponentBuilder {
         .build();
   }
 
-  private Long getLongFromCsvObject(Object payAmount, boolean skippable) {
+  private Long getLongFromCsvObject(Object csvValue, String fieldName, boolean skippable) {
     try {
-      return Long.parseLong(payAmount.toString());
+      return Long.parseLong(csvValue.toString());
     } catch (NumberFormatException | NullPointerException exception) {
       if (skippable) {
         return null;
       }
       throw new UnskippableCsvException(
-          String.format("Csv value '%s' couldn't be parsed to Long", payAmount));
+          String.format(
+              "Csv value '%s' for field '%s' couldn't be parsed to Long", csvValue, fieldName));
     }
   }
 }

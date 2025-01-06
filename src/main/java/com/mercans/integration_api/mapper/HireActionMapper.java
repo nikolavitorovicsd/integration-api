@@ -1,5 +1,6 @@
 package com.mercans.integration_api.mapper;
 
+import static com.mercans.integration_api.model.EmployeeRecord.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.mercans.integration_api.exception.UnskippableCsvException;
@@ -25,7 +26,8 @@ public class HireActionMapper extends PayComponentBuilder implements ActionMappe
     // we will try to convert date and if conversion fails it will skip whole row, otherwise
     // it will set it as null which will also skip the row
     LocalDate hireDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getEmployeeContractStartDate(), false);
+        DateUtils.getLocalDateFromCsvObject(
+            employeeRecord.getEmployeeContractStartDate(), CONTRACT_WORK_START_DATE, false);
 
     String employeeCode =
         Optional.ofNullable((String) employeeRecord.getEmployeeCode())
@@ -33,10 +35,12 @@ public class HireActionMapper extends PayComponentBuilder implements ActionMappe
 
     String employeeFullName = (String) employeeRecord.getEmployeeName();
 
-    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), true);
+    Gender employeeGender =
+        Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), WORKER_GENDER, true);
 
     LocalDate birthDate =
-        DateUtils.getBirthDateFromCsvObject(employeeRecord.getEmployeeBirthDate(), true);
+        DateUtils.getBirthDateFromCsvObject(
+            employeeRecord.getEmployeeBirthDate(), WORKER_PERSONAL_CODE, true);
 
     // we validate payComponents and if any have violations we filter them out
     var components =

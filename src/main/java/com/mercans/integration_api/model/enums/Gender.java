@@ -29,7 +29,8 @@ public enum Gender {
             () -> new ValidationException(String.format("Unsupported Gender type '%s'", value)));
   }
 
-  public static Gender getGenderFromCsvObject(Object csvValue, boolean skippable) {
+  public static Gender getGenderFromCsvObject(
+      Object csvValue, String fieldName, boolean skippable) {
     try {
       var enumName = csvValue.toString();
       return fromCsvValue(enumName);
@@ -38,7 +39,8 @@ public enum Gender {
         return null;
       }
       throw new UnskippableCsvException(
-          String.format("Csv value '%s' couldn't be parsed to Gender", csvValue));
+          String.format(
+              "Csv value '%s' for field '%s' couldn't be parsed to Gender", csvValue, fieldName));
     }
   }
 }

@@ -1,5 +1,7 @@
 package com.mercans.integration_api.mapper;
 
+import static com.mercans.integration_api.model.EmployeeRecord.WORKER_GENDER;
+import static com.mercans.integration_api.model.EmployeeRecord.WORKER_PERSONAL_CODE;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.mercans.integration_api.exception.UnskippableCsvException;
@@ -22,16 +24,18 @@ public class ChangeActionMapper extends PayComponentBuilder implements ActionMap
     if (ObjectUtils.isEmpty(employeeRecord.getEmployeeCode())) {
       throw new UnskippableCsvException("Missing 'employeeCode' for 'CHANGE' action");
     }
-    // todo validate employeecode length
+
     String employeeCode =
         Optional.of(employeeRecord.getEmployeeCode()).map(String.class::cast).orElse(null);
 
     String employeeFullName = (String) employeeRecord.getEmployeeName();
 
-    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), true);
+    Gender employeeGender =
+        Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), WORKER_GENDER, true);
 
     LocalDate birthDate =
-        DateUtils.getBirthDateFromCsvObject(employeeRecord.getEmployeeBirthDate(), true);
+        DateUtils.getBirthDateFromCsvObject(
+            employeeRecord.getEmployeeBirthDate(), WORKER_PERSONAL_CODE, true);
 
     // we validate payComponents and if any have violations we filter them out
     var components =

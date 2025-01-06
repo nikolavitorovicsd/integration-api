@@ -6,7 +6,8 @@ public enum Currency {
   USD,
   EUR;
 
-  public static Currency getCurrencyFromCsvObject(Object csvValue, boolean skippable) {
+  public static Currency getCurrencyFromCsvObject(
+      Object csvValue, String fieldName, boolean skippable) {
     try {
       var enumName = csvValue.toString().toUpperCase();
       return valueOf(enumName);
@@ -15,7 +16,8 @@ public enum Currency {
         return null;
       }
       throw new UnskippableCsvException(
-          String.format("Csv value '%s' couldn't be parsed to Currency", csvValue));
+          String.format(
+              "Csv value '%s' for field '%s' couldn't be parsed to Currency", csvValue, fieldName));
     }
   }
 }

@@ -171,8 +171,8 @@ public class BulkInsertService {
         "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
   }
 
-  // this method should remove all components for specific employee if new action has list of
-  // components that is not empty
+  // this method should remove (set delete_date) all components for specific employee if new action
+  // has list of components that is not empty
   private void removeOldComponentsAndAddNew(List<Action> changeActions) {
     var removeComponentsStartTime = System.currentTimeMillis();
 
