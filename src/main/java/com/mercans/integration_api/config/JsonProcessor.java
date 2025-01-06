@@ -65,17 +65,15 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             saveException(
                 String.format(
                     "Record with systemId '%s' and employeeCode '%s' already exists in db and can't be added",
-                    employeeRecord.getSystemId(), employeeRecord.getEmployeeCode()));
+                    employeeRecord.getSystemId(), hireAction.employeeCode()));
             return hireAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
           if (batchJobStatistics.isHireEmployeeAlreadyProcessed(hireAction.employeeCode())) {
             saveException(
                 String.format(
                     "Record with systemId '%s' and employeeCode '%s' is duplicate in csv and will be skipped",
-                    employeeRecord.getSystemId(), employeeRecord.getEmployeeCode()));
+                    employeeRecord.getSystemId(), hireAction.employeeCode()));
             return hireAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
-          } else {
-            batchJobStatistics.addToAlreadyProcessedHireEmployees(hireAction.employeeCode());
           }
         }
         case CHANGE -> {
@@ -88,7 +86,7 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             saveException(
                 String.format(
                     "Record with systemId '%s' and employeeCode '%s' doesn't exists in db neither in already processed CSV lines and can't be updated!",
-                    employeeRecord.getSystemId(), employeeRecord.getEmployeeCode()));
+                    employeeRecord.getSystemId(), changeAction.employeeCode()));
             return changeAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
         }
@@ -102,16 +100,29 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             saveException(
                 String.format(
                     "Record with systemId '%s' and employeeCode '%s' doesn't exists in db neither in already processed CSV lines and can't be deleted!",
-                    employeeRecord.getSystemId(), employeeRecord.getEmployeeCode()));
+                    employeeRecord.getSystemId(), terminateAction.employeeCode()));
             return terminateAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
         }
       }
 
+      // todo refactor
       // finally we check if any of required fields in action are missing,
       // if yes, action is ignored and exception message is saved
-      if (hasValidationExceptions(action, (String) employeeRecord.getSystemId())) {
+      Set<ConstraintViolation<Action>> violations = validator.validate(action);
+      if (isNotEmpty(violations)) {
+        var validationMessages = violations.stream().map(ConstraintViolation::getMessage).toList();
+        String message =
+            String.format(
+                "Record with systemId '%s' failed validation and will be skipped, reason: %s .",
+                employeeRecord.getSystemId(), validationMessages);
+        saveException(message);
         return null;
+      }
+
+      // we add processed valid hire action to cache
+      if (ActionType.HIRE.equals(action.getAction())) {
+        batchJobStatistics.addToAlreadyProcessedHireEmployees(action.getEmployeeCode());
       }
 
       return action;
@@ -128,21 +139,6 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
       }
       throw new RuntimeException("Stop the application, something is unhandled properly!");
     }
-  }
-
-  private boolean hasValidationExceptions(Action action, String systemId) {
-    // this validates created action fields (e.g if hire action has null employeeCode)
-    Set<ConstraintViolation<Action>> violations = validator.validate(action);
-    if (isNotEmpty(violations)) {
-      var validationMessages = violations.stream().map(ConstraintViolation::getMessage).toList();
-      String message =
-          String.format(
-              "Record with systemId '%s' failed validation and will be skipped, reason: %s .",
-              systemId, validationMessages);
-      saveException(message);
-      return true;
-    }
-    return false;
   }
 
   private void saveException(String exceptionMessage) {

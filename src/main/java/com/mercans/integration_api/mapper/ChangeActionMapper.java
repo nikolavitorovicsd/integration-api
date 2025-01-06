@@ -12,7 +12,6 @@ import com.mercans.integration_api.model.enums.Gender;
 import com.mercans.integration_api.utils.DateUtils;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -24,10 +23,6 @@ public class ChangeActionMapper extends PayComponentBuilder implements ActionMap
     if (ObjectUtils.isEmpty(employeeRecord.getEmployeeCode())) {
       throw new UnskippableCsvException("Missing 'employeeCode' for 'CHANGE' action");
     }
-
-    String employeeCode =
-        Optional.of(employeeRecord.getEmployeeCode()).map(String.class::cast).orElse(null);
-
     String employeeFullName = (String) employeeRecord.getEmployeeName();
 
     Gender employeeGender =
@@ -44,7 +39,7 @@ public class ChangeActionMapper extends PayComponentBuilder implements ActionMap
             .collect(Collectors.toList());
 
     return ChangeAction.builder()
-        .employeeCode(employeeCode)
+        .employeeCode((String) employeeRecord.getEmployeeCode())
         .employeeFullName(employeeFullName)
         .employeGender(employeeGender)
         .employeeBirthDate(birthDate)
