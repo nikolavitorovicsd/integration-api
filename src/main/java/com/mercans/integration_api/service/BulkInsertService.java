@@ -159,13 +159,19 @@ public class BulkInsertService {
             .map(employee -> Date.valueOf(employee.getEmployeeBirthDate()))
             .toArray(Date[]::new);
 
+    Date[] employeesHireDates =
+        updateEmployees.stream()
+            .map(employee -> Date.valueOf(employee.getEmployeeHireDate()))
+            .toArray(Date[]::new);
+
     var rowsUpdated =
         jdbcTemplate.update(
             UNNEST_UPDATE_PERSON_QUERY,
             employeesCodes,
             employeesFullNames,
             employeesGenders,
-            employeesBirthDates);
+            employeesBirthDates,
+            employeesHireDates);
 
     log.info(
         "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
@@ -260,6 +266,7 @@ public class BulkInsertService {
   private EmployeeEntity buildChangePersonEntity(ChangeAction changeAction) {
     return EmployeeEntity.builder()
         .employeeCode(changeAction.getEmployeeCode())
+        .employeeHireDate(changeAction.employeeHireDate())
         .employeeFullName(changeAction.employeeFullName())
         .employeGender(changeAction.employeGender())
         .employeeBirthDate(changeAction.employeeBirthDate())

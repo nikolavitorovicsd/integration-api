@@ -11,10 +11,10 @@ import com.mercans.integration_api.model.enums.Gender;
 import com.mercans.integration_api.utils.DateUtils;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.*;
 import org.apache.commons.lang3.ObjectUtils;
 
-public class HireActionMapper extends PayComponentBuilder implements ActionMapper {
+public class HireActionMapper extends PayComponentMapper implements ActionMapper {
   @Override
   public Action mapToAction(EmployeeRecord employeeRecord, Validator validator)
       throws UnskippableCsvException {
@@ -48,13 +48,42 @@ public class HireActionMapper extends PayComponentBuilder implements ActionMappe
             .filter(component -> isEmpty(validator.validate(component)))
             .toList();
 
-    return HireAction.builder()
-        .employeeCode(employeeCode)
-        .employeeHireDate(hireDate)
-        .employeeFullName(employeeFullName)
-        .employeGender(employeeGender)
-        .employeeBirthDate(birthDate)
-        .payComponents(components)
-        .build();
+    var hireActionBuilder =
+        HireAction.builder()
+            .employeeCode(employeeCode)
+            .employeeHireDate(hireDate)
+            .employeeFullName(employeeFullName)
+            .employeGender(employeeGender)
+            .employeeBirthDate(birthDate)
+            .payComponents(components)
+            .build();
+
+    Map<String, Object> data = buildData(hireActionBuilder);
+
+    return hireActionBuilder.toBuilder().data(data).build();
+  }
+
+  private Map<String, Object> buildData(HireAction hireAction) {
+    Map<String, Object> data = new HashMap<>();
+    data.put("person.employee_code", hireAction.employeeCode());
+    data.put("person.hire_date", hireAction.employeeHireDate());
+    data.put("person.full_name", hireAction.employeeFullName());
+    data.put("person.gender", hireAction.employeGender());
+    data.put("person.birth_date", hireAction.employeeBirthDate());
+
+    List<Map<String, Object>> componentsList = new ArrayList<>();
+    hireAction
+        .payComponents()
+        .forEach(
+            component -> {
+              Map<String, Object> componentData = new HashMap<>();
+              componentData.put("salary_component.amount", component.amount());
+              componentData.put("salary_component.currency", component.currency());
+              componentData.put("salary_component.start_date", component.startDate());
+              componentData.put("salary_component.end_date", component.endDate());
+              componentsList.add(componentData);
+            });
+    data.put("components", componentsList);
+    return data;
   }
 }

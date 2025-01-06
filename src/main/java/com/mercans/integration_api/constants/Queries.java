@@ -28,13 +28,13 @@ public class Queries {
   public static final String UNNEST_UPDATE_PERSON_QUERY =
       """
           UPDATE person
-          SET full_name = b.fullName, gender = b.gender, birth_date = b.birthDate
+          SET full_name = b.fullName, gender = b.gender, birth_date = b.birthDate, hire_date = b.hireDate
           FROM
           (
               SELECT *
                   FROM
-                    UNNEST(?::TEXT[], ?::TEXT[], ?::TEXT[], ?::DATE[])
-                    AS t(employeeCode, fullName, gender, birthDate)
+                    UNNEST(?::TEXT[], ?::TEXT[], ?::TEXT[], ?::DATE[], ?::DATE[])
+                    AS t(employeeCode, fullName, gender, birthDate, hireDate)
           ) AS b
 
           WHERE person.employee_code = b.employeeCode

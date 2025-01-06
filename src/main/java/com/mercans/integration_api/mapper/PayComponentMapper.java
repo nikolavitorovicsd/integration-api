@@ -10,7 +10,7 @@ import com.mercans.integration_api.utils.DateUtils;
 import java.time.LocalDate;
 import java.util.List;
 
-public class PayComponentBuilder {
+public class PayComponentMapper {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay

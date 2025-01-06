@@ -9,7 +9,7 @@ import com.mercans.integration_api.model.actions.TerminateAction;
 import com.mercans.integration_api.utils.DateUtils;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.*;
 import org.apache.commons.lang3.ObjectUtils;
 
 public class TerminateActionMapper implements ActionMapper {
@@ -25,9 +25,18 @@ public class TerminateActionMapper implements ActionMapper {
             .map(date -> DateUtils.getLocalDateFromCsvObject(date, CONTRACT_END_DATE, false))
             .orElse(LocalDate.now());
 
+    Map<String, Object> data = getData(terminationDate);
+
     return TerminateAction.builder()
         .employeeCode((String) employeeRecord.getEmployeeCode())
         .terminationDate(terminationDate)
+        .data(data)
         .build();
+  }
+
+  private Map<String, Object> getData(LocalDate terminationDate) {
+    Map<String, Object> data = new HashMap<>();
+    data.put("person.termination_date", terminationDate);
+    return data;
   }
 }
