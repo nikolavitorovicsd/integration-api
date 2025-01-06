@@ -24,5 +24,9 @@ CREATE TABLE salary_component (
   CONSTRAINT fk_person_id FOREIGN KEY (person_id) REFERENCES person(id)
 );
 
+CREATE TABLE json_response (
+  id UUID PRIMARY KEY,
+  payload JSONB NOT NULL
+);
 -- add index on foreign key todo retest
 --CREATE INDEX salary_component_person_id ON salary_component USING btree (person_id)

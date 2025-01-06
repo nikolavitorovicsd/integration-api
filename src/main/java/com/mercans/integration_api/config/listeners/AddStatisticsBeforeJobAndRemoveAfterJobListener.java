@@ -1,5 +1,6 @@
 package com.mercans.integration_api.config.listeners;
 
+import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.BatchJobStatistics;
 import lombok.RequiredArgsConstructor;

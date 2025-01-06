@@ -3,8 +3,9 @@ package com.mercans.integration_api.service;
 import static com.mercans.integration_api.constants.GlobalConstants.*;
 
 import com.mercans.integration_api.constants.GlobalConstants;
-import com.mercans.integration_api.exception.JsonFileNotFoundException;
-import com.mercans.integration_api.utils.FileUtils;
+import com.mercans.integration_api.jpa.JsonResponseEntity;
+import com.mercans.integration_api.jpa.repository.JsonResponseRepository;
+import com.mercans.integration_api.model.JsonResponse;
 import java.io.*;
 import java.util.Date;
 import java.util.Optional;
@@ -27,6 +28,7 @@ public class CsvReadService {
   private final JobLauncher jobLauncher;
   private final Job readCsvJob;
   private final FileService fileService;
+  private final JsonResponseRepository jsonResponseRepository;
 
   public UUID saveCsvData(MultipartFile file)
       throws JobInstanceAlreadyCompleteException,
@@ -67,18 +69,11 @@ public class CsvReadService {
     return jsonResponseUuid;
   }
 
-  public String getJsonResponse(UUID jsonID) throws IOException {
-    var gzipFilePathPlaceHolder = JSON_FILES_UPLOAD_DIRECTORY + "%s.json.gz";
-
-    String filePath = gzipFilePathPlaceHolder.formatted(jsonID);
-    File gzippedFile = new File(filePath);
-
-    if (!gzippedFile.exists()) {
-      throw new JsonFileNotFoundException(
-          String.format("Json report with id = '%s' not found!", jsonID));
-    }
-
-    // Decompress the gzipped file and get its content as a String
-    return FileUtils.decompressGzippedFile(gzippedFile);
+  public JsonResponse getJsonResponseFromDb(UUID jsonID) {
+    JsonResponseEntity jsonResponseEntity =
+        jsonResponseRepository
+            .findById(jsonID)
+            .orElseThrow(() -> new RuntimeException("NOT FOUND!"));
+    return jsonResponseEntity.getPayload();
   }
 }

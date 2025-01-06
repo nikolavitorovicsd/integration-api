@@ -1,8 +1,8 @@
 package com.mercans.integration_api.config;
 
 import com.mercans.integration_api.config.listeners.AddStatisticsBeforeJobAndRemoveAfterJobListener;
-import com.mercans.integration_api.config.listeners.CompressJsonAndRemoveAfterJobListener;
 import com.mercans.integration_api.config.listeners.RemoveUploadedCsvFileAfterJobListener;
+import com.mercans.integration_api.config.listeners.SaveJsonToDbAndRemoveAfterJobListener;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.actions.Action;
 import lombok.extern.slf4j.Slf4j;
@@ -25,14 +25,14 @@ public class SpringBatchConfiguration {
   Job readCsvJob(
       JobRepository jobRepository,
       Step readCsvStep,
-      CompressJsonAndRemoveAfterJobListener compressJsonAndRemoveAfterJobListener,
+      SaveJsonToDbAndRemoveAfterJobListener saveJsonToDbAndRemoveAfterJobListener,
       RemoveUploadedCsvFileAfterJobListener removeUploadedCsvFileAfterJobListener,
       AddStatisticsBeforeJobAndRemoveAfterJobListener
           addStatisticsBeforeJobAndRemoveAfterJobListener) {
     return new JobBuilder("readCsvJob", jobRepository)
         .start(readCsvStep)
         // do not change order, last registered listener is actually called first
-        .listener(compressJsonAndRemoveAfterJobListener) // called third
+        .listener(saveJsonToDbAndRemoveAfterJobListener) // called third
         .listener(removeUploadedCsvFileAfterJobListener) // called second
         .listener(addStatisticsBeforeJobAndRemoveAfterJobListener) // called first
         .build();

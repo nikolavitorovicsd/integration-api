@@ -34,7 +34,9 @@ dependencies {
     // allows informative logs for hibernate queries
     implementation 'com.github.gavlyukovskiy:datasource-proxy-spring-boot-starter:1.10.0'
 
-
+    // allow using of jsonb type to save response to db
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'org.hibernate.orm:hibernate-core:6.6.4.Final'
 
     // lombok
     compileOnly 'org.projectlombok:lombok'

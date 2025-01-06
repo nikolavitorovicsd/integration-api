@@ -8,7 +8,7 @@ public class GlobalConstants {
   public static final String BATCH_JOB_JSON_UUID = "uuid";
   public static final String BATCH_JOB_STATISTICS = "batchJobStatistics";
 
-  public static final String CSV_FILES_UPLOAD_DIRECTORY = "src/main/resources/csv_files/";
-  public static final String JSON_FILES_UPLOAD_DIRECTORY = "src/main/resources/json_files/";
+  public static final String CSV_FILES_UPLOAD_DIRECTORY = "src/main/resources/tmp/csv_files/";
+  public static final String JSON_FILES_UPLOAD_DIRECTORY = "src/main/resources/tmp/json_files/";
   public static final String GLOBAL_DATE_FORMAT = "dd-MM-yyyy";
 }

@@ -4,7 +4,7 @@ import static com.mercans.integration_api.model.EmployeeRecord.ACTION;
 import static com.mercans.integration_api.model.enums.ActionType.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.mercans.integration_api.config.listeners.BatchJobCache;
+import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.exception.UnskippableCsvException;
 import com.mercans.integration_api.mapper.UniversalMapper;
 import com.mercans.integration_api.model.EmployeeRecord;

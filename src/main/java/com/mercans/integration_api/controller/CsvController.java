@@ -1,5 +1,6 @@
 package com.mercans.integration_api.controller;
 
+import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.service.CsvReadService;
 import java.io.IOException;
 import java.util.UUID;
@@ -15,18 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping(path = "/upload")
+@RequestMapping(path = "/csv")
 @RequiredArgsConstructor
 public class CsvController {
 
   private final CsvReadService csvReadService;
 
-  @GetMapping(value = "/hello")
-  public ResponseEntity<String> helloThere() {
-    return new ResponseEntity<>("Hello there", HttpStatus.OK);
-  }
-
-  @PostMapping(value = "/csv")
+  @PostMapping(value = "/upload")
   public ResponseEntity<String> uploadCsv(@RequestParam("file") MultipartFile file)
       throws JobInstanceAlreadyCompleteException,
           JobExecutionAlreadyRunningException,
@@ -42,10 +38,10 @@ public class CsvController {
         String.format("Json response with id: '%s' saved.", jsonId), HttpStatus.OK);
   }
 
-  @GetMapping(value = "/csv/{json_id}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> getJsonResponse(@PathVariable("json_id") UUID jsonID)
+  @GetMapping(value = "/{json_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonResponse> getJsonResponseFromDb(@PathVariable("json_id") UUID jsonID)
       throws IOException {
-    var response = csvReadService.getJsonResponse(jsonID);
+    var response = csvReadService.getJsonResponseFromDb(jsonID);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

@@ -4,6 +4,7 @@ import com.mercans.integration_api.model.actions.Action;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
@@ -13,4 +14,5 @@ public record JsonResponse(
     @NotNull UUID uuid,
     @NotNull String fname,
     ErrorStatistics errors,
-    @NotEmpty List<@Valid Action> payload) {}
+    @NotEmpty List<@Valid Action> payload)
+    implements Serializable {}

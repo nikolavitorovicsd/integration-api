@@ -2,7 +2,7 @@ package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CSV_FILE_PATH;
 
-import com.mercans.integration_api.config.listeners.BatchJobCache;
+import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHandler;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.opencsv.bean.CsvToBean;

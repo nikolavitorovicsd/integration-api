@@ -6,7 +6,7 @@ build/
 !**/src/test/**/build/
 
 # ignore directories which are used to upload files
-resources/*_files
+resources/tmp
 
 ### STS ###
 .apt_generated

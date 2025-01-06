@@ -3,7 +3,7 @@ package com.mercans.integration_api.service;
 import static com.mercans.integration_api.constants.Queries.MAX_PERSON_ID_QUERY;
 import static com.mercans.integration_api.constants.Queries.MAX_SALARY_COMPONENT_ID_QUERY;
 
-import com.mercans.integration_api.config.listeners.BatchJobCache;
+import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.model.BatchJobStatistics;
