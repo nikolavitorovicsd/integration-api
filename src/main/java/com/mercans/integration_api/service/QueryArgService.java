@@ -12,6 +12,7 @@ import com.mercans.integration_api.model.QueryArgHolder;
 import com.mercans.integration_api.model.actions.ChangeAction;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +138,16 @@ public class QueryArgService {
             .map(component -> Date.valueOf(component.getEndDate()))
             .toArray(Date[]::new);
 
+    Timestamp[] employeesCreationDates =
+        employees.stream()
+            .map(employee -> Timestamp.from(employee.getCreationDate()))
+            .toArray(Timestamp[]::new);
+
+    Timestamp[] employeesModificationDates =
+        employees.stream()
+            .map(employee -> Timestamp.from(employee.getModificationDate()))
+            .toArray(Timestamp[]::new);
+
     return QueryArgHolder.builder()
         .employeesIds(employeesIds)
         .employeesFullNames(employeesFullNames)
@@ -144,6 +155,8 @@ public class QueryArgService {
         .employeesHireDates(employeesHireDates)
         .employeesGenders(employeesGenders)
         .employeesBirthDates(employeesBirthDates)
+        .employeesCreationDates(employeesCreationDates)
+        .employeesModificationDates(employeesModificationDates)
         .componentsIds(componentsIds)
         .componentEmployeeIds(componentEmployeeIds)
         .componentsAmounts(componentsAmounts)

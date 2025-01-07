@@ -3,6 +3,7 @@ package com.mercans.integration_api.jpa;
 import com.mercans.integration_api.model.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.*;
@@ -44,4 +45,12 @@ public class EmployeeEntity {
   @OneToMany(cascade = CascadeType.MERGE, orphanRemoval = true, fetch = FetchType.LAZY)
   @JoinColumn(name = "person_id", nullable = false)
   private List<SalaryComponentEntity> salaryComponents;
+
+  @Column(name = "creation_date", updatable = false)
+  @NotNull
+  private Instant creationDate;
+
+  @Column(name = "modification_date")
+  @NotNull
+  private Instant modificationDate;
 }

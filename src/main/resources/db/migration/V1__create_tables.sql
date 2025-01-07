@@ -6,6 +6,8 @@ CREATE TABLE person (
   employee_code VARCHAR(8) NOT NULL,
   hire_date DATE NOT NULL,
   termination_date DATE DEFAULT NULL,
+  creation_date TIMESTAMP NOT NULL,
+  modification_date TIMESTAMP NOT NULL,
 
   PRIMARY KEY (id),
   CONSTRAINT employee_code_unique UNIQUE (employee_code)
@@ -18,7 +20,7 @@ CREATE TABLE salary_component (
   currency VARCHAR(3) NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  delete_date DATE DEFAULT NULL,
+  delete_date TIMESTAMP DEFAULT NULL,
 
   PRIMARY KEY (id),
   CONSTRAINT fk_person_id FOREIGN KEY (person_id) REFERENCES person(id)

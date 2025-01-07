@@ -12,7 +12,8 @@ import com.mercans.integration_api.model.actions.ChangeAction;
 import com.mercans.integration_api.model.actions.TerminateAction;
 import com.mercans.integration_api.model.enums.ActionType;
 import java.sql.Date;
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,10 @@ public class BulkInsertService {
     for (EmployeeEntity employee : employees) {
       // set current sequence number as person id
       employee.setId(nextEmployeeId);
+
+      var date = Instant.now();
+      employee.setCreationDate(date);
+      employee.setModificationDate(date);
 
       // set the corresponding employee id for each salary component and assign salary component id
       for (SalaryComponentEntity salaryComponent : employee.getSalaryComponents()) {
@@ -129,9 +134,17 @@ public class BulkInsertService {
             .map(terminateAction -> Date.valueOf(terminateAction.terminationDate()))
             .toArray(Date[]::new);
 
+    Timestamp[] employeesModificationDates =
+        terminateActions.stream()
+            .map(action -> Timestamp.from(Instant.now()))
+            .toArray(Timestamp[]::new);
+
     var rowsUpdated =
         jdbcTemplate.update(
-            UNNEST_TERMINATE_PERSON_QUERY, employeesCodes, employeesTerminationDates);
+            UNNEST_TERMINATE_PERSON_QUERY,
+            employeesCodes,
+            employeesTerminationDates,
+            employeesModificationDates);
 
     log.info(
         "TERMINATED {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
@@ -164,6 +177,10 @@ public class BulkInsertService {
             .map(employee -> Date.valueOf(employee.getEmployeeHireDate()))
             .toArray(Date[]::new);
 
+    Timestamp modificationDate = Timestamp.from(Instant.now());
+    Timestamp[] employeesModificationDates =
+        updateEmployees.stream().map(employee -> modificationDate).toArray(Timestamp[]::new);
+
     var rowsUpdated =
         jdbcTemplate.update(
             UNNEST_UPDATE_PERSON_QUERY,
@@ -171,7 +188,8 @@ public class BulkInsertService {
             employeesFullNames,
             employeesGenders,
             employeesBirthDates,
-            employeesHireDates);
+            employeesHireDates,
+            employeesModificationDates);
 
     log.info(
         "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
@@ -213,10 +231,12 @@ public class BulkInsertService {
     Long[] employeeIdsForWhichWeNeedToRemoveSalaryComponents =
         employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
 
+    Timestamp deleteDate = Timestamp.from(Instant.now());
+
     var removedSalaryComponentsCount =
         jdbcTemplate.update(
             UNNEST_DELETE_FROM_SALARY_COMPONENT_QUERY,
-            LocalDate.now(), // setting today's date as delete_date
+            deleteDate,
             employeeIdsForWhichWeNeedToRemoveSalaryComponents);
 
     log.info(
@@ -255,6 +275,8 @@ public class BulkInsertService {
         queryArgHolder.employeesHireDates(),
         queryArgHolder.employeesGenders(),
         queryArgHolder.employeesBirthDates(),
+        queryArgHolder.employeesCreationDates(),
+        queryArgHolder.employeesModificationDates(),
         queryArgHolder.componentsIds(),
         queryArgHolder.componentEmployeeIds(),
         queryArgHolder.componentsAmounts(),
