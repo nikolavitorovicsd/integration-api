@@ -4,10 +4,7 @@ import static com.mercans.integration_api.constants.GlobalConstants.CSV_FILES_UP
 
 import com.mercans.integration_api.utils.FileUtils;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class FileService {
 
+  // this method stores uploaded csv file to '/tmp/csv_files' directory and returns target path
   public Path saveFileToLocalDirectory(MultipartFile file) {
     try {
       // create directory if missing

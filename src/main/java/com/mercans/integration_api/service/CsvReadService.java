@@ -3,16 +3,17 @@ package com.mercans.integration_api.service;
 import static com.mercans.integration_api.constants.GlobalConstants.*;
 
 import com.mercans.integration_api.constants.GlobalConstants;
+import com.mercans.integration_api.exception.BatchJobAlreadyRunningException;
 import com.mercans.integration_api.jpa.JsonResponseEntity;
 import com.mercans.integration_api.jpa.repository.JsonResponseRepository;
 import com.mercans.integration_api.model.JsonResponse;
-import java.io.*;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.*;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
@@ -29,6 +30,7 @@ public class CsvReadService {
   private final Job readCsvJob;
   private final FileService fileService;
   private final JsonResponseRepository jsonResponseRepository;
+  private final JobExplorer jobExplorer;
 
   public UUID saveCsvData(MultipartFile file)
       throws JobInstanceAlreadyCompleteException,
@@ -36,10 +38,14 @@ public class CsvReadService {
           JobParametersInvalidException,
           JobRestartException {
 
-    // todo refactor this into new step
+    if (isJobRunning()) {
+      throw new BatchJobAlreadyRunningException(
+          "A job is already running. Try again in couple of seconds.");
+    }
+
     var pathToStoredCsvFile =
         Optional.ofNullable(fileService.saveFileToLocalDirectory(file))
-            .orElseThrow(() -> new RuntimeException("DOESNT WORK!"));
+            .orElseThrow(() -> new RuntimeException("DOESN'T WORK!"));
 
     var jsonResponseUuid = UUID.randomUUID();
 
@@ -75,5 +81,9 @@ public class CsvReadService {
             .findById(jsonID)
             .orElseThrow(() -> new RuntimeException("NOT FOUND!"));
     return jsonResponseEntity.getPayload();
+  }
+
+  private boolean isJobRunning() {
+    return !jobExplorer.findRunningJobExecutions(READ_CSV_JOB).isEmpty();
   }
 }

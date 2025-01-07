@@ -52,8 +52,7 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
       csvIterator = csvToBean.iterator();
     } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("File with employeeName '%s' doesn't exist!", csvFileName));
+      throw new RuntimeException(String.format("File with name '%s' doesn't exist!", csvFileName));
     }
   }
 

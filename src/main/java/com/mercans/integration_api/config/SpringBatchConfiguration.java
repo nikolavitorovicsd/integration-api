@@ -4,6 +4,7 @@ import com.mercans.integration_api.config.listeners.AddStatisticsBeforeJobAndRem
 import com.mercans.integration_api.config.listeners.CreatePersonSalariesDbViewAfterJobListener;
 import com.mercans.integration_api.config.listeners.RemoveUploadedCsvFileAfterJobListener;
 import com.mercans.integration_api.config.listeners.SaveJsonToDbAndRemoveAfterJobListener;
+import com.mercans.integration_api.constants.GlobalConstants;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.actions.Action;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class SpringBatchConfiguration {
       RemoveUploadedCsvFileAfterJobListener removeUploadedCsvFileAfterJobListener,
       AddStatisticsBeforeJobAndRemoveAfterJobListener
           addStatisticsBeforeJobAndRemoveAfterJobListener) {
-    return new JobBuilder("readCsvJob", jobRepository)
+    return new JobBuilder(GlobalConstants.READ_CSV_JOB, jobRepository)
         .start(readCsvStep)
         // do not change order, last registered listener is actually called first
         .listener(createPersonSalariesDbViewAfterJobListener) // called last
@@ -68,7 +69,7 @@ public class SpringBatchConfiguration {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setMaxPoolSize(1);
     executor.setCorePoolSize(1);
-    executor.setQueueCapacity(1);
+    executor.setQueueCapacity(0);
 
     return executor;
   }
