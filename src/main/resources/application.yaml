@@ -2,7 +2,7 @@ spring:
   application:
     name: integration-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/integration?rewriteBatchedStatements=true
+    url: jdbc:postgresql://localhost:5432/integration
     username: user
     password: pass
   batch:
@@ -41,14 +41,4 @@ batch-config:
   chunk-size: 10000 # chunk size which determines how many rows are processed during read/process/write
   skip-limit: 100000 # 100k rows
 
-# todo prometheus
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health,info,metrics,prometheus
-#  prometheus:
-#    metrics:
-#      export:
-#        enabled: true
 

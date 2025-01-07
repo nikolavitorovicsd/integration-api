@@ -143,4 +143,48 @@ public class DateUtils {
               csvValue, fieldName));
     }
   }
+
+  public LocalDate getLocalDateForSalaryFromCsvObject(
+      Object csvValue, String fieldName, boolean skippable) {
+    try {
+      String value = csvValue.toString();
+      StringBuilder dateStringBuilder = new StringBuilder();
+
+      String dayPart;
+      String monthPart;
+      String yearPart;
+      int year;
+
+      if (value.length() == 5 || value.length() == 6) {
+        if (value.length() == 5) {
+          // Format is dMMYY, where day has no leading zero
+          dayPart = "0" + value.charAt(0); // Add leading zero to day
+          monthPart = value.substring(1, 3);
+          yearPart = value.substring(3, 5);
+        } else {
+          // Format is ddMMyy
+          dayPart = value.substring(0, 2);
+          monthPart = value.substring(2, 4);
+          yearPart = value.substring(4, 6);
+        }
+        year = Integer.parseInt(yearPart) + 2000;
+      } else {
+        throw new ValidationException(
+            String.format("Invalid date format: '%s'. Expected 5 or 6 digits.", value));
+      }
+      // creates a day in format ddMMyy
+      dateStringBuilder.append(dayPart).append("-").append(monthPart).append("-").append(year);
+
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GlobalConstants.GLOBAL_DATE_FORMAT);
+      return LocalDate.parse(dateStringBuilder, formatter);
+    } catch (DateTimeParseException | NullPointerException | ValidationException e) {
+      if (skippable) {
+        return null;
+      }
+      throw new UnskippableCsvException(
+          String.format(
+              "Csv value '%s' for field '%s' couldn't be parsed to LocalDate",
+              csvValue, fieldName));
+    }
+  }
 }

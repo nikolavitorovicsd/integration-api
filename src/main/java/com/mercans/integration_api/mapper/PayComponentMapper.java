@@ -16,16 +16,16 @@ public class PayComponentMapper {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay
-
     BigDecimal payAmount =
         getBigDecimalFromCsvObject(employeeRecord.getPayAmount(), PAY_AMOUNT, true);
     Currency payCurrency =
         Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), PAY_CURRENCY, true);
     LocalDate payStartDate =
-        DateUtils.getLocalDateFromCsvObject(
+        DateUtils.getLocalDateForSalaryFromCsvObject(
             employeeRecord.getPayStartDate(), PAY_EFFECTIVE_FROM, true);
     LocalDate payEndDate =
-        DateUtils.getLocalDateFromCsvObject(employeeRecord.getPayEndDate(), PAY_EFFECTIVE_TO, true);
+        DateUtils.getLocalDateForSalaryFromCsvObject(
+            employeeRecord.getPayEndDate(), PAY_EFFECTIVE_TO, true);
 
     var payComponent = buildPayComponent(payAmount, payCurrency, payStartDate, payEndDate);
 
@@ -37,10 +37,10 @@ public class PayComponentMapper {
         Currency.getCurrencyFromCsvObject(
             employeeRecord.getCompensationCurrency(), COMPENSATION_CURRENCY, true);
     LocalDate compensationStartDate =
-        DateUtils.getLocalDateFromCsvObject(
+        DateUtils.getLocalDateForSalaryFromCsvObject(
             employeeRecord.getCompensationStartDate(), COMPENSATION_EFFECTIVE_FROM, true);
     LocalDate compensationEndDate =
-        DateUtils.getLocalDateFromCsvObject(
+        DateUtils.getLocalDateForSalaryFromCsvObject(
             employeeRecord.getCompensationEndDate(), COMPENSATION_EFFECTIVE_TO, true);
 
     var compensationComponent =
