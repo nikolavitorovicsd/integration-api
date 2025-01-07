@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class CsvReadService {
 
-  private final JobLauncher jobLauncher;
+  private final JobLauncher asyncJobLauncher;
   private final Job readCsvJob;
   private final FileService fileService;
   private final JsonResponseRepository jsonResponseRepository;
@@ -64,7 +64,7 @@ public class CsvReadService {
                 new JobParameter<>(jsonFilePath, String.class))
             .toJobParameters();
 
-    jobLauncher.run(readCsvJob, jobParameters);
+    asyncJobLauncher.run(readCsvJob, jobParameters);
 
     return jsonResponseUuid;
   }
