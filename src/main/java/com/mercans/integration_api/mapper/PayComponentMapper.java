@@ -7,6 +7,8 @@ import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.enums.Currency;
 import com.mercans.integration_api.utils.DateUtils;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,7 +16,9 @@ public class PayComponentMapper {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay
-    Long payAmount = getLongFromCsvObject(employeeRecord.getPayAmount(), PAY_AMOUNT, true);
+
+    BigDecimal payAmount =
+        getBigDecimalFromCsvObject(employeeRecord.getPayAmount(), PAY_AMOUNT, true);
     Currency payCurrency =
         Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), PAY_CURRENCY, true);
     LocalDate payStartDate =
@@ -26,8 +30,9 @@ public class PayComponentMapper {
     var payComponent = buildPayComponent(payAmount, payCurrency, payStartDate, payEndDate);
 
     // compensation
-    Long compensationAmount =
-        getLongFromCsvObject(employeeRecord.getCompensationAmount(), COMPENSATION_AMOUNT, true);
+    BigDecimal compensationAmount =
+        getBigDecimalFromCsvObject(
+            employeeRecord.getCompensationAmount(), COMPENSATION_AMOUNT, true);
     Currency compensationCurrency =
         Currency.getCurrencyFromCsvObject(
             employeeRecord.getCompensationCurrency(), COMPENSATION_CURRENCY, true);
@@ -46,7 +51,7 @@ public class PayComponentMapper {
   }
 
   private PayComponent buildPayComponent(
-      Long payAmount, Currency payCurrency, LocalDate payStartDate, LocalDate payEndDate) {
+      BigDecimal payAmount, Currency payCurrency, LocalDate payStartDate, LocalDate payEndDate) {
     return PayComponent.builder()
         .amount(payAmount)
         .currency(payCurrency)
@@ -55,9 +60,10 @@ public class PayComponentMapper {
         .build();
   }
 
-  private Long getLongFromCsvObject(Object csvValue, String fieldName, boolean skippable) {
+  private BigDecimal getBigDecimalFromCsvObject(
+      Object csvValue, String fieldName, boolean skippable) {
     try {
-      return Long.parseLong(csvValue.toString());
+      return new BigDecimal((String) csvValue).setScale(0, RoundingMode.HALF_UP);
     } catch (NumberFormatException | NullPointerException exception) {
       if (skippable) {
         return null;

@@ -10,6 +10,7 @@ import com.mercans.integration_api.model.BatchJobStatistics;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.QueryArgHolder;
 import com.mercans.integration_api.model.actions.ChangeAction;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,11 +113,11 @@ public class QueryArgService {
             .map(SalaryComponentEntity::getEmployeeId)
             .toArray(Long[]::new);
 
-    Long[] componentsAmounts =
+    BigDecimal[] componentsAmounts =
         employees.stream()
             .flatMap(employee -> employee.getSalaryComponents().stream())
             .map(SalaryComponentEntity::getAmount)
-            .toArray(Long[]::new);
+            .toArray(BigDecimal[]::new);
 
     String[] componentsCurrencies =
         employees.stream()
@@ -161,11 +162,11 @@ public class QueryArgService {
     Long[] componentEmployeeIds =
         getComponentEmployeeIds(actionsForWhichWeUpdatePersonComponents, employeeCodeToIdMap);
 
-    Long[] componentsAmounts =
+    BigDecimal[] componentsAmounts =
         actionsForWhichWeUpdatePersonComponents.stream()
             .flatMap(action -> action.payComponents().stream())
             .map(PayComponent::amount)
-            .toArray(Long[]::new);
+            .toArray(BigDecimal[]::new);
 
     String[] componentsCurrencies =
         actionsForWhichWeUpdatePersonComponents.stream()

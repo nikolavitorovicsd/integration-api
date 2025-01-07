@@ -1,5 +1,6 @@
 package com.mercans.integration_api.model;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import lombok.Builder;
 
@@ -13,7 +14,7 @@ public record QueryArgHolder(
     Date[] employeesBirthDates,
     Long[] componentsIds,
     Long[] componentEmployeeIds,
-    Long[] componentsAmounts,
+    BigDecimal[] componentsAmounts,
     String[] componentsCurrencies,
     Date[] componentsStartDates,
     Date[] componentsEndDates) {}

@@ -36,7 +36,6 @@ dependencies {
 
     // allow using of jsonb type to save response to db
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-    implementation 'org.hibernate.orm:hibernate-core:6.6.4.Final'
 
     // lombok
     compileOnly 'org.projectlombok:lombok'

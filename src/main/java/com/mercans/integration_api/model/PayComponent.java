@@ -3,6 +3,7 @@ package com.mercans.integration_api.model;
 import com.mercans.integration_api.model.enums.Currency;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.Builder;
 
@@ -10,7 +11,7 @@ import lombok.Builder;
 public record PayComponent(
     @NotNull(message = "payComponent amount must not be null")
         @Positive(message = "payComponent amount must be positive number")
-        Long amount,
+        BigDecimal amount,
     @NotNull(message = "payComponent currency must not be null") Currency currency,
 
     // TODO !!! ADD VALIDATION THAT CHECKS IF END DATE IS BEFORE START DATE!

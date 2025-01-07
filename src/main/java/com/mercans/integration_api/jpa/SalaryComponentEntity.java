@@ -3,6 +3,7 @@ package com.mercans.integration_api.jpa;
 import com.mercans.integration_api.model.enums.Currency;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.*;
 
@@ -20,7 +21,7 @@ public class SalaryComponentEntity {
 
   @NotNull
   @Column(name = "amount")
-  private Long amount;
+  private BigDecimal amount;
 
   @NotNull
   @Column(name = "currency")

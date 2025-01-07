@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
-import org.hibernate.validator.constraints.UniqueElements;
 
 @Builder(toBuilder = true)
 public record HireAction(
@@ -23,7 +22,7 @@ public record HireAction(
     Gender employeGender,
     LocalDate employeeBirthDate,
     Map<String, Object> data,
-    @UniqueElements List<@Valid PayComponent> payComponents,
+    List<@Valid PayComponent> payComponents,
     @JsonIgnore boolean shouldBeSkippedDuringWrite)
     implements Action {
 
