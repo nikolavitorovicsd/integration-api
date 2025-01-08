@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @ControllerAdvice
 public class ControllerExceptionHandler {
 
-  @Value("${spring.servlet.multipart.max-file-size}")
+  @Value("${spring.servlet.multipart.max-file-size: 12MB}")
   private String maxFileSize;
 
   @ExceptionHandler(JsonFileNotFoundException.class)

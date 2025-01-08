@@ -49,7 +49,7 @@ public class CsvReadService {
 
     var jsonResponseUuid = UUID.randomUUID();
 
-    var jsonFilePath = JSON_FILES_UPLOAD_DIRECTORY + jsonResponseUuid + ".json";
+    var jsonFilePath = JSON_FILES_UPLOAD_DIRECTORY + jsonResponseUuid + JSON;
 
     JobParameters jobParameters =
         new JobParametersBuilder()

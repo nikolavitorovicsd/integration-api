@@ -12,4 +12,5 @@ public class GlobalConstants {
   public static final String JSON_FILES_UPLOAD_DIRECTORY = "src/main/resources/tmp/json_files/";
   public static final String GLOBAL_DATE_FORMAT = "dd-MM-yyyy";
   public static final String READ_CSV_JOB = "readCsvJob";
+  public static final String JSON = ".json";
 }

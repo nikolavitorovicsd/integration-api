@@ -21,4 +21,3 @@ Post example
 # Important notes:
 1. After every job run, there will be a view 'create_employees_current_salaries_view' created in db
 2. Application is not thread safe for now and only single batch process should be run
-3. CSV file processing takes less than 10s for files up to 12MB

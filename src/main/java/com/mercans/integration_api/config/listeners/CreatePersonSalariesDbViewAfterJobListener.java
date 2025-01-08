@@ -34,6 +34,6 @@ public class CreatePersonSalariesDbViewAfterJobListener implements JobExecutionL
     }
     jdbcTemplate.execute(sqlQuery);
 
-    log.info("Successfully created 'employees_current_salaries' in db.");
+    log.info("Successfully created 'employees_current_salaries' VIEW in db.");
   }
 }

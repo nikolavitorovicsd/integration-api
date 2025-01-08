@@ -14,4 +14,7 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> 
   // todo refactor to use only fields necessary and not whole object
   @Query(" SELECT em FROM EmployeeEntity em where em.employeeCode in :employeeCodes ")
   List<EmployeeEntity> getEmployeesByEmployeeCodes(Iterable<String> employeeCodes);
+
+  @Query(" SELECT em FROM EmployeeEntity em LEFT JOIN FETCH em.salaryComponents ORDER BY em.id")
+  List<EmployeeEntity> getAllEmployees();
 }

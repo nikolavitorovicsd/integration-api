@@ -4,13 +4,16 @@ import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_ST
 
 import com.mercans.integration_api.model.BatchJobStatistics;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 // cache class, currently used only for BatchJobStatistics
 @Component
+@Slf4j
 public class BatchJobCache {
 
-  private final ConcurrentHashMap<String, Object> dataMap = new ConcurrentHashMap<>();
+  @Getter private final ConcurrentHashMap<String, Object> dataMap = new ConcurrentHashMap<>();
 
   public void putStatistics(BatchJobStatistics statistics) {
     dataMap.put(BATCH_JOB_STATISTICS, statistics);
@@ -21,6 +24,7 @@ public class BatchJobCache {
   }
 
   public void clearStatistics() {
-    dataMap.remove(BATCH_JOB_STATISTICS);
+    dataMap.clear();
+    log.info("BatchJobCache cleared successfully.");
   }
 }

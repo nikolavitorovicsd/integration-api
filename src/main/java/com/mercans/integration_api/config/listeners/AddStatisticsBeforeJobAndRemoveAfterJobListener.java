@@ -31,8 +31,13 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
   // clear cache
   @Override
   public void afterJob(JobExecution jobExecution) {
+    log.info(
+        "Written '{}' lines to json file  of total '{}' lines from csv file.",
+        batchJobCache.getStatistics().getJsonFileLinesCount(),
+        batchJobCache.getStatistics().getCsvFileReadLinesCount());
+
     batchJobCache.clearStatistics();
-    if (ObjectUtils.isNotEmpty(batchJobCache.getStatistics())) {
+    if (ObjectUtils.isNotEmpty(batchJobCache.getDataMap())) {
       throw new RuntimeException("Failed to clear cache after job!");
     }
   }

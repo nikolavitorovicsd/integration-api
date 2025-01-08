@@ -46,10 +46,12 @@ public class EmployeeEntity {
   @JoinColumn(name = "person_id", nullable = false)
   private List<SalaryComponentEntity> salaryComponents;
 
+  @EqualsAndHashCode.Exclude
   @Column(name = "creation_date", updatable = false)
   @NotNull
   private Instant creationDate;
 
+  @EqualsAndHashCode.Exclude
   @Column(name = "modification_date")
   @NotNull
   private Instant modificationDate;

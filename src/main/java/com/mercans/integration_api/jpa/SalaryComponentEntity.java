@@ -38,8 +38,8 @@ public class SalaryComponentEntity {
   private LocalDate endDate;
 
   @Column(name = "delete_date")
-  private Instant creationDate;
+  private Instant deleteDate;
 
   // value holder for FK to be used during bulk insert
-  @Transient private Long employeeId;
+  @Transient @EqualsAndHashCode.Exclude private Long employeeId;
 }

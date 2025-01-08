@@ -31,7 +31,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core' // this must be present for flyway to work
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.1.0' // this must be present for flyway to work
 
-    // allows informative logs for hibernate queries
+    // allows informative logs for hibernate/sql queries
     implementation 'com.github.gavlyukovskiy:datasource-proxy-spring-boot-starter:1.10.0'
 
     // allow using of jsonb type to save response to db
@@ -42,13 +42,18 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
 
-    // test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
+
+    // test phase
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // test containers
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+
+    // lombok test phase
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 spotless {

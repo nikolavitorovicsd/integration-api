@@ -13,6 +13,6 @@ import lombok.Builder;
 public record JsonResponse(
     @NotNull UUID uuid,
     @NotNull String fname,
-    ErrorStatistics errors,
+    ErrorResponse errors,
     @NotEmpty List<@Valid Action> payload)
     implements Serializable {}

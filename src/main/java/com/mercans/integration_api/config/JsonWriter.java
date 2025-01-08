@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.jpa.EmployeeEntity;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
+import com.mercans.integration_api.model.ErrorResponse;
 import com.mercans.integration_api.model.JsonResponse;
 import com.mercans.integration_api.model.PayComponent;
 import com.mercans.integration_api.model.actions.Action;
@@ -78,6 +79,7 @@ public class JsonWriter implements ItemWriter<Action> {
             chunk.getItems().stream()
                 .filter(action -> !action.shouldBeSkippedDuringWrite())
                 .toList());
+
     // increase json write lines count
     batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(chunk.size());
 
@@ -92,24 +94,8 @@ public class JsonWriter implements ItemWriter<Action> {
     bulkInsertService.bulkUpdate(changeActions);
     bulkInsertService.bulkTerminate(terminateActions);
 
-    // problematic corner case that rarely happens: work when last chunk size matches provided job
-    // chunk size
-    // for example when used 1 chunk size for 2 same csv rows, chunk.isEnd() returns false even
-    // thought its really last
-    if (chunk.isEnd()) {
-      log.info(
-          "Written '{}' lines to json file  of total '{}' lines from csv file.",
-          batchJobCache.getStatistics().getJsonFileLinesCount(),
-          batchJobCache.getStatistics().getCsvFileReadLinesCount());
-      // add all errors in the last chunk
-      jsonResponse =
-          jsonResponse.toBuilder()
-              .errors(batchJobCache.getStatistics().getErrorStatistics())
-              .build();
-    }
-
     // update the json file
-    objectMapper.writeValue(jsonFilePath, jsonResponse);
+    objectMapper.writeValue(jsonFilePath, jsonResponse.toBuilder().errors(getErrors()).build());
   }
 
   // this method separates HIRE actions from TERMINATE/CHANGE actions
@@ -180,5 +166,12 @@ public class JsonWriter implements ItemWriter<Action> {
       jsonResponse = new JsonResponse(jsonResponseUUID, csvFileName, null, new ArrayList<>());
     }
     return jsonResponse;
+  }
+
+  private ErrorResponse getErrors() {
+    return ErrorResponse.builder()
+        .errorCount(batchJobCache.getStatistics().getErrorStatistics().getErrorCount().get())
+        .errors(batchJobCache.getStatistics().getErrorStatistics().getErrors())
+        .build();
   }
 }
