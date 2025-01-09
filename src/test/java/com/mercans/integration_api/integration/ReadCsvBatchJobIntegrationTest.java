@@ -3,8 +3,7 @@ package com.mercans.integration_api.integration;
 import static com.mercans.integration_api.constants.GlobalConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.batch.core.BatchStatus.COMPLETED;
 
 import com.mercans.integration_api.IntegrationApiApplication;
@@ -106,9 +105,9 @@ public class ReadCsvBatchJobIntegrationTest {
 
     // source path of csv file that needs to be copied to csv_files directory to be picked up by job
     // copying is done because job removes processed csv and jsons after finishing
-    Path sourcePath = Paths.get(CSV_FILES_SOURCE_DIRECTORY + fileName);
-    Path targetPath = Paths.get(CSV_FILES_UPLOAD_DIRECTORY + fileName);
-    Files.copy(sourcePath, targetPath);
+    Path csvSourcePath = Paths.get(CSV_FILES_SOURCE_DIRECTORY + fileName);
+    Path csvTargetPath = Paths.get(CSV_FILES_UPLOAD_DIRECTORY + fileName);
+    Files.copy(csvSourcePath, csvTargetPath);
 
     // give json an UUID to start a job, it will be used later
     var jsonResponseUuid = UUID.randomUUID();
@@ -119,7 +118,7 @@ public class ReadCsvBatchJobIntegrationTest {
             // passing csv path so i can reuse it later during reading of file in CsvFileReader
             .addJobParameter(
                 BATCH_JOB_CSV_FILE_PATH, // source file
-                new JobParameter<>(targetPath.toString(), String.class))
+                new JobParameter<>(csvTargetPath.toString(), String.class))
             .addJobParameter(
                 GlobalConstants.BATCH_JOB_DATE, new JobParameter<>(new Date(), Date.class))
             .addJobParameter(
@@ -169,9 +168,14 @@ public class ReadCsvBatchJobIntegrationTest {
     assertEquals(4, jsonResponse.payload().size());
     assertEquals(6, jsonResponse.errors().errorCount());
 
+    // check that actual list in db matches list of valid actions in json
     assertEquals(
         actualList.stream().map(EmployeeEntity::getEmployeeCode).toList(),
         jsonResponse.payload().stream().map(Action::getEmployeeCode).toList());
+
+    // check that temporary files were removed
+    assertFalse(Files.exists(csvTargetPath), "File should not exist");
+    assertFalse(Files.exists(Path.of(jsonFilePath)), "File should not exist");
   }
 
   @Test
