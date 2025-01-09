@@ -11,37 +11,30 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 public class PayComponentMapper {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay
-    BigDecimal payAmount =
-        getBigDecimalFromCsvObject(employeeRecord.getPayAmount(), PAY_AMOUNT, true);
-    Currency payCurrency =
-        Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency(), PAY_CURRENCY, true);
+    BigDecimal payAmount = getBigDecimalFromCsvObject(employeeRecord.getPayAmount());
+    Currency payCurrency = Currency.getCurrencyFromCsvObject(employeeRecord.getPayCurrency());
     LocalDate payStartDate =
-        DateUtils.getLocalDateForSalaryFromCsvObject(
-            employeeRecord.getPayStartDate(), PAY_EFFECTIVE_FROM, true);
+        DateUtils.getLocalDateForSalaryFromCsvObject(employeeRecord.getPayStartDate());
     LocalDate payEndDate =
-        DateUtils.getLocalDateForSalaryFromCsvObject(
-            employeeRecord.getPayEndDate(), PAY_EFFECTIVE_TO, true);
+        DateUtils.getLocalDateForSalaryFromCsvObject(employeeRecord.getPayEndDate());
 
     var payComponent = buildPayComponent(payAmount, payCurrency, payStartDate, payEndDate);
 
     // compensation
     BigDecimal compensationAmount =
-        getBigDecimalFromCsvObject(
-            employeeRecord.getCompensationAmount(), COMPENSATION_AMOUNT, true);
+        getBigDecimalFromCsvObject(employeeRecord.getCompensationAmount());
     Currency compensationCurrency =
-        Currency.getCurrencyFromCsvObject(
-            employeeRecord.getCompensationCurrency(), COMPENSATION_CURRENCY, true);
+        Currency.getCurrencyFromCsvObject(employeeRecord.getCompensationCurrency());
     LocalDate compensationStartDate =
-        DateUtils.getLocalDateForSalaryFromCsvObject(
-            employeeRecord.getCompensationStartDate(), COMPENSATION_EFFECTIVE_FROM, true);
+        DateUtils.getLocalDateForSalaryFromCsvObject(employeeRecord.getCompensationStartDate());
     LocalDate compensationEndDate =
-        DateUtils.getLocalDateForSalaryFromCsvObject(
-            employeeRecord.getCompensationEndDate(), COMPENSATION_EFFECTIVE_TO, true);
+        DateUtils.getLocalDateForSalaryFromCsvObject(employeeRecord.getCompensationEndDate());
 
     var compensationComponent =
         buildPayComponent(
@@ -60,17 +53,23 @@ public class PayComponentMapper {
         .build();
   }
 
-  private BigDecimal getBigDecimalFromCsvObject(
-      Object csvValue, String fieldName, boolean skippable) {
+  private BigDecimal getBigDecimalFromCsvObject(Object csvValue) {
     try {
       return new BigDecimal((String) csvValue).setScale(0, RoundingMode.HALF_UP);
     } catch (NumberFormatException | NullPointerException exception) {
-      if (skippable) {
-        return null;
-      }
+      return null;
+    }
+  }
+
+  protected String getEmployeeFullName(EmployeeRecord employeeRecord) {
+    String employeeFullName = (String) employeeRecord.getEmployeeName();
+
+    if (StringUtils.isEmpty(employeeFullName)) {
       throw new UnskippableCsvException(
           String.format(
-              "Csv value '%s' for field '%s' couldn't be parsed to Long", csvValue, fieldName));
+              "Csv value '%s' for field '%s' can't be empty",
+              employeeRecord.getEmployeeName(), WORKER_NAME));
     }
+    return employeeFullName;
   }
 }

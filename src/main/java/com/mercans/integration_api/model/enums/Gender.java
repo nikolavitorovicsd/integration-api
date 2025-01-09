@@ -2,7 +2,6 @@ package com.mercans.integration_api.model.enums;
 
 import static java.util.stream.Collectors.toMap;
 
-import com.mercans.integration_api.exception.UnskippableCsvException;
 import jakarta.validation.ValidationException;
 import java.util.Map;
 import java.util.Optional;
@@ -29,18 +28,12 @@ public enum Gender {
             () -> new ValidationException(String.format("Unsupported Gender type '%s'", value)));
   }
 
-  public static Gender getGenderFromCsvObject(
-      Object csvValue, String fieldName, boolean skippable) {
+  public static Gender getGenderFromCsvObject(Object csvValue) {
     try {
       var enumName = csvValue.toString();
       return fromCsvValue(enumName);
     } catch (IllegalArgumentException | ValidationException | NullPointerException exception) {
-      if (skippable) {
-        return null;
-      }
-      throw new UnskippableCsvException(
-          String.format(
-              "Csv value '%s' for field '%s' couldn't be parsed to Gender", csvValue, fieldName));
+      return null;
     }
   }
 }

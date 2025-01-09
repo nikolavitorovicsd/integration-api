@@ -28,16 +28,14 @@ public class ChangeActionMapper extends PayComponentMapper implements ActionMapp
     }
     LocalDate hireDate =
         DateUtils.getLocalDateFromCsvObject(
-            employeeRecord.getEmployeeContractStartDate(), CONTRACT_WORK_START_DATE, false);
+            employeeRecord.getEmployeeContractStartDate(), CONTRACT_WORK_START_DATE);
 
-    String employeeFullName = (String) employeeRecord.getEmployeeName();
+    String employeeFullName = getEmployeeFullName(employeeRecord);
 
-    Gender employeeGender =
-        Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), WORKER_GENDER, true);
+    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender());
 
     LocalDate birthDate =
-        DateUtils.getBirthDateFromCsvObject(
-            employeeRecord.getEmployeeBirthDate(), WORKER_PERSONAL_CODE, true);
+        DateUtils.getBirthDateFromCsvObject(employeeRecord.getEmployeeBirthDate());
 
     // we validate payComponents and if any have violations we filter them out
     var components =

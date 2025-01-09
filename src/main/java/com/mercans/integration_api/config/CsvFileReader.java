@@ -1,6 +1,7 @@
 package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.constants.GlobalConstants.BATCH_JOB_CSV_FILE_PATH;
+import static com.mercans.integration_api.model.EmployeeRecord.EMPTY_RECORD;
 
 import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.exception.handlers.CsvReadCustomExceptionHandler;
@@ -70,10 +71,15 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   @Override
   public EmployeeRecord read() {
-    if (csvIterator.hasNext()) {
+    while (csvIterator.hasNext()) {
+      EmployeeRecord employeeRecord = csvIterator.next();
+      // skip empty row
+      if (EMPTY_RECORD.equals(employeeRecord)) {
+        continue;
+      }
       // increase csv read lines count
       batchJobCache.getStatistics().updateCsvFileReadLinesCount();
-      return csvIterator.next();
+      return employeeRecord;
     }
     return null;
   }

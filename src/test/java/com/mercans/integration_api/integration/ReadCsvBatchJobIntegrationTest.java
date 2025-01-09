@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,21 +86,100 @@ public class ReadCsvBatchJobIntegrationTest {
   }
 
   @BeforeEach
-  void setupSpringBatch() {
+  void batchSetup() {
     jobLauncherTestUtils.setJobLauncher(asyncJobLauncher);
+    jobRepositoryTestUtils.removeJobExecutions();
   }
 
-  @BeforeEach
-  void setJobRepositoryTestUtilssetupSpringBatch() {
-    jobRepositoryTestUtils.removeJobExecutions();
+  @AfterEach
+  void cleanDb() {
+    // important to remove previous data
+    employeeRepository.deleteAll();
   }
 
   @Test
   // e2e test for provided "input_01.csv" file
-  public void readCsvJobShouldProcessCsvFileSuccessfully() throws Exception {
+  public void readCsvJobShouldProcessCsvFileSuccessfully_input01file() throws Exception {
     // given
 
     String fileName = "input_01.csv";
+
+    // source path of csv file that needs to be copied to csv_files directory to be picked up by job
+    // copying is done because job removes processed csv and jsons after finishing
+    Path sourcePath = Paths.get(CSV_FILES_SOURCE_DIRECTORY + fileName);
+    Path targetPath = Paths.get(CSV_FILES_UPLOAD_DIRECTORY + fileName);
+    Files.copy(sourcePath, targetPath);
+
+    // give json an UUID to start a job, it will be used later
+    var jsonResponseUuid = UUID.randomUUID();
+    var jsonFilePath = JSON_FILES_UPLOAD_DIRECTORY + jsonResponseUuid + JSON;
+
+    JobParameters jobParameters =
+        new JobParametersBuilder()
+            // passing csv path so i can reuse it later during reading of file in CsvFileReader
+            .addJobParameter(
+                BATCH_JOB_CSV_FILE_PATH, // source file
+                new JobParameter<>(targetPath.toString(), String.class))
+            .addJobParameter(
+                GlobalConstants.BATCH_JOB_DATE, new JobParameter<>(new Date(), Date.class))
+            .addJobParameter(
+                GlobalConstants.BATCH_JOB_CSV_FILE_NAME, new JobParameter<>(fileName, String.class))
+            .addJobParameter(
+                GlobalConstants.BATCH_JOB_JSON_UUID,
+                new JobParameter<>(jsonResponseUuid, UUID.class))
+            .addJobParameter(
+                BATCH_JOB_JSON_FILE_PATH, new JobParameter<>(jsonFilePath, String.class))
+            .toJobParameters();
+
+    // when
+    JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+
+    // then
+    assertEquals(BatchStatus.STARTING, jobExecution.getStatus());
+
+    await()
+        .atMost(60, TimeUnit.SECONDS)
+        .pollInterval(2, TimeUnit.SECONDS)
+        .until(
+            () ->
+                COMPLETED
+                    == jobLauncherTestUtils
+                        .getJobRepository()
+                        .getLastJobExecution(READ_CSV_JOB, jobExecution.getJobParameters())
+                        .getStatus());
+
+    assertEquals(COMPLETED, jobExecution.getStatus());
+
+    List<EmployeeEntity> actualList = employeeRepository.getAllEmployees();
+    List<EmployeeEntity> expectedList = buildEntityList();
+
+    assertThat(actualList)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(
+            "creationDate", "modificationDate", "employeeCode")
+        .containsExactlyInAnyOrder(expectedList.toArray(EmployeeEntity[]::new));
+    assertEquals(4, actualList.size());
+
+    // assert cache was cleared after job completed
+    assertTrue(batchJobCache.getDataMap().isEmpty());
+
+    // assert json was stored into db
+    JsonResponse jsonResponse = csvReadService.getJsonResponseFromDb(jsonResponseUuid);
+    assertEquals(jsonResponseUuid, jsonResponse.uuid());
+    assertEquals(fileName, jsonResponse.fname());
+    assertEquals(4, jsonResponse.payload().size());
+    assertEquals(6, jsonResponse.errors().errorCount());
+
+    assertEquals(
+        actualList.stream().map(EmployeeEntity::getEmployeeCode).toList(),
+        jsonResponse.payload().stream().map(Action::getEmployeeCode).toList());
+  }
+
+  @Test
+  // e2e test for provided "input_02.csv" file
+  public void readCsvJobShouldProcessCsvFileSuccessfully_input02file() throws Exception {
+    // given
+
+    String fileName = "input_02.csv";
 
     // source path of csv file that needs to be copied to csv_files directory to be picked up by job
     // copying is done because job removes processed csv and jsons after finishing

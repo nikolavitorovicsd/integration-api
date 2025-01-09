@@ -73,15 +73,9 @@ public class JsonWriter implements ItemWriter<Action> {
     File jsonFilePath = new File(targetJsonPath);
     JsonResponse jsonResponse = getOrCreateJson(jsonFilePath);
     // append items to json
-    jsonResponse
-        .payload()
-        .addAll(
-            chunk.getItems().stream()
-                .filter(action -> !action.shouldBeSkippedDuringWrite())
-                .toList());
-
-    // increase json write lines count
-    batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(chunk.size());
+    var actionsToBeWrittenToJson =
+        chunk.getItems().stream().filter(action -> !action.shouldBeSkippedDuringWrite()).toList();
+    jsonResponse.payload().addAll(actionsToBeWrittenToJson);
 
     List<Action> changeActions = new ArrayList<>();
     List<Action> terminateActions = new ArrayList<>();
@@ -96,6 +90,9 @@ public class JsonWriter implements ItemWriter<Action> {
 
     // update the json file
     objectMapper.writeValue(jsonFilePath, jsonResponse.toBuilder().errors(getErrors()).build());
+
+    // increase json write lines count
+    batchJobCache.getStatistics().updateJsonFileWrittenLinesCount(actionsToBeWrittenToJson.size());
   }
 
   // this method separates HIRE actions from TERMINATE/CHANGE actions

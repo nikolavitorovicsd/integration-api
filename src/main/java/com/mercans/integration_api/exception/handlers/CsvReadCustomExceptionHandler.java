@@ -12,7 +12,6 @@ public class CsvReadCustomExceptionHandler implements CsvExceptionHandler {
     if (exception instanceof CsvRequiredFieldEmptyException) {
       return null;
     }
-    // todo keep playing with csv to probe if something fails batch process
     return exception;
   }
 }

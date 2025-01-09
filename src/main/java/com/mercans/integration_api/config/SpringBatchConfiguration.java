@@ -26,7 +26,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class SpringBatchConfiguration {
 
-  // todo refactor steps, separate concerns of uploading removing files differently
   @Bean
   Job readCsvJob(
       JobRepository jobRepository,
@@ -53,8 +52,8 @@ public class SpringBatchConfiguration {
       CsvFileReader csvFileReader,
       JsonProcessor jsonProcessor,
       JsonWriter jsonWriter,
-      @Value("${batch-config.chunk-size: 1}") int chunkSize, // todo return to 1000
-      @Value("${batch-config.skip-limit: 0}") int skipLimit) { // todo skipLimit might not be needed
+      // chunkSize = 1 is used during e2e testing
+      @Value("${batch-config.chunk-size: 1}") int chunkSize) {
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)

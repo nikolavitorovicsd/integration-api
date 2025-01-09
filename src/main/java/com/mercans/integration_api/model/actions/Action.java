@@ -16,7 +16,6 @@ public interface Action {
   @JsonIgnore
   ActionType getAction();
 
-  // TODO!!! validate employeecode length
   public String getEmployeeCode();
 
   @JsonIgnore

@@ -22,7 +22,7 @@ public class TerminateActionMapper implements ActionMapper {
     LocalDate terminationDate =
         Optional.ofNullable(employeeRecord.getEmployeeContractEndDate())
             // if termination date fails to convert, we throw unskippable exception
-            .map(date -> DateUtils.getLocalDateFromCsvObject(date, CONTRACT_END_DATE, false))
+            .map(date -> DateUtils.getLocalDateFromCsvObject(date, CONTRACT_END_DATE))
             .orElse(LocalDate.now());
 
     Map<String, Object> data = getData(terminationDate);

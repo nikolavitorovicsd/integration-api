@@ -2,7 +2,6 @@ package com.mercans.integration_api.config;
 
 import static com.mercans.integration_api.model.EmployeeRecord.ACTION;
 import static com.mercans.integration_api.model.enums.ActionType.*;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.exception.UnskippableCsvException;
@@ -14,9 +13,7 @@ import com.mercans.integration_api.model.actions.ChangeAction;
 import com.mercans.integration_api.model.actions.HireAction;
 import com.mercans.integration_api.model.actions.TerminateAction;
 import com.mercans.integration_api.model.enums.ActionType;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -40,13 +37,6 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
 
   @Override
   public Action process(EmployeeRecord employeeRecord) {
-    // this handles empty line or missing systemId (it makes sense that systemId is always
-    // present from client) and makes it easier to follow which line in csv didnt pass validation
-    if (employeeRecord.getSystemId() == null
-        || employeeRecord.equals(EmployeeRecord.EMPTY_RECORD)) {
-      return null;
-    }
-
     try {
       Action action = null;
 
@@ -104,20 +94,6 @@ public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
             return terminateAction.toBuilder().shouldBeSkippedDuringWrite(true).build();
           }
         }
-      }
-
-      // todo refactor
-      // finally we check if any of required fields in action are missing,
-      // if yes, action is ignored and exception message is saved
-      Set<ConstraintViolation<Action>> violations = validator.validate(action);
-      if (isNotEmpty(violations)) {
-        var validationMessages = violations.stream().map(ConstraintViolation::getMessage).toList();
-        String message =
-            String.format(
-                "Record with systemId '%s' failed validation and will be skipped, reason: %s .",
-                employeeRecord.getSystemId(), validationMessages);
-        saveException(message);
-        return null;
       }
 
       // we add processed valid hire action to cache

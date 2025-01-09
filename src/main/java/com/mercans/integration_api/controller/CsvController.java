@@ -22,7 +22,7 @@ public class CsvController {
 
   private final CsvReadService csvReadService;
 
-  @PostMapping(value = "/upload")
+  @PostMapping(value = {"/upload", "/upload/"})
   public ResponseEntity<String> uploadCsv(@RequestParam("file") MultipartFile file)
       throws JobInstanceAlreadyCompleteException,
           JobExecutionAlreadyRunningException,
@@ -38,7 +38,9 @@ public class CsvController {
         String.format("Json response with id: '%s' saved.", jsonId), HttpStatus.OK);
   }
 
-  @GetMapping(value = "/{json_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(
+      value = {"/{json_id}", "/{json_id}/"},
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonResponse> getJsonResponseFromDb(@PathVariable("json_id") UUID jsonID)
       throws IOException {
     var response = csvReadService.getJsonResponseFromDb(jsonID);

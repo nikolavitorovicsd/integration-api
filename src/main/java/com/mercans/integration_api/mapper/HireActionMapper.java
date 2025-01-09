@@ -27,20 +27,23 @@ public class HireActionMapper extends PayComponentMapper implements ActionMapper
     // it will set it as null which will also skip the row
     LocalDate hireDate =
         DateUtils.getLocalDateFromCsvObject(
-            employeeRecord.getEmployeeContractStartDate(), CONTRACT_WORK_START_DATE, false);
+            employeeRecord.getEmployeeContractStartDate(), CONTRACT_WORK_START_DATE);
 
     String employeeCode =
         Optional.ofNullable((String) employeeRecord.getEmployeeCode())
             .orElseGet(() -> DateUtils.getEmployeeCodeFromStartDate(hireDate));
 
-    String employeeFullName = (String) employeeRecord.getEmployeeName();
+    if (employeeCode.length() > 8) {
+      throw new UnskippableCsvException(
+          "Invalid 'employeeCode' length, can have at most 8 characters");
+    }
 
-    Gender employeeGender =
-        Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender(), WORKER_GENDER, true);
+    String employeeFullName = getEmployeeFullName(employeeRecord);
+
+    Gender employeeGender = Gender.getGenderFromCsvObject(employeeRecord.getEmployeeGender());
 
     LocalDate birthDate =
-        DateUtils.getBirthDateFromCsvObject(
-            employeeRecord.getEmployeeBirthDate(), WORKER_PERSONAL_CODE, true);
+        DateUtils.getBirthDateFromCsvObject(employeeRecord.getEmployeeBirthDate());
 
     // we validate payComponents and if any have violations we filter them out
     var components =

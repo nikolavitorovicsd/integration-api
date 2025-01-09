@@ -17,7 +17,7 @@ public class DateUtils {
 
   // this method tries to return input value in LocalDate format from input "60999"
   // where if day is under 10, it can start without 0
-  public LocalDate getLocalDateFromCsvObject(Object csvValue, String fieldName, boolean skippable) {
+  public LocalDate getLocalDateFromCsvObject(Object csvValue, String fieldName) {
     try {
       String value = csvValue.toString();
       StringBuilder dateStringBuilder = new StringBuilder();
@@ -57,9 +57,6 @@ public class DateUtils {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GlobalConstants.GLOBAL_DATE_FORMAT);
       return LocalDate.parse(dateStringBuilder, formatter);
     } catch (DateTimeParseException | NullPointerException | ValidationException e) {
-      if (skippable) {
-        return null;
-      }
       throw new UnskippableCsvException(
           String.format(
               "Csv value '%s' for field '%s' couldn't be parsed to LocalDate",
@@ -88,7 +85,7 @@ public class DateUtils {
   // this method validates input value with regex and then tries to return it in LocalDate format
   // "yyyy-MM-dd" from input that looks like "611207NCLTAGZQ8U-NJFVQ5OWYFG" where first 6 figures
   // represent date in yyMMdd format, i.e "1961-12-07" will be saved to db
-  public LocalDate getBirthDateFromCsvObject(Object csvValue, String fieldName, boolean skippable) {
+  public LocalDate getBirthDateFromCsvObject(Object csvValue) {
 
     try {
       String inputString = csvValue.toString();
@@ -134,18 +131,11 @@ public class DateUtils {
         throw new ValidationException("Invalid input format for date");
       }
     } catch (DateTimeParseException | NullPointerException | ValidationException e) {
-      if (skippable) {
-        return null;
-      }
-      throw new UnskippableCsvException(
-          String.format(
-              "Csv value '%s' for field '%s' couldn't be parsed to LocalDate",
-              csvValue, fieldName));
+      return null;
     }
   }
 
-  public LocalDate getLocalDateForSalaryFromCsvObject(
-      Object csvValue, String fieldName, boolean skippable) {
+  public LocalDate getLocalDateForSalaryFromCsvObject(Object csvValue) {
     try {
       String value = csvValue.toString();
       StringBuilder dateStringBuilder = new StringBuilder();
@@ -178,13 +168,7 @@ public class DateUtils {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GlobalConstants.GLOBAL_DATE_FORMAT);
       return LocalDate.parse(dateStringBuilder, formatter);
     } catch (DateTimeParseException | NullPointerException | ValidationException e) {
-      if (skippable) {
-        return null;
-      }
-      throw new UnskippableCsvException(
-          String.format(
-              "Csv value '%s' for field '%s' couldn't be parsed to LocalDate",
-              csvValue, fieldName));
+      return null;
     }
   }
 }

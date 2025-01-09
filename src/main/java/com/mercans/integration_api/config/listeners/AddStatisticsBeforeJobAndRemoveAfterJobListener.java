@@ -32,7 +32,7 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
   @Override
   public void afterJob(JobExecution jobExecution) {
     log.info(
-        "Written '{}' lines to json file  of total '{}' lines from csv file.",
+        "Written '{}' payloads to json file of total '{}' rows from csv file.",
         batchJobCache.getStatistics().getJsonFileLinesCount(),
         batchJobCache.getStatistics().getCsvFileReadLinesCount());
 
