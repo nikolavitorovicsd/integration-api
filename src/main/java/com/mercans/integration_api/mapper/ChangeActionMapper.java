@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 
-public class ChangeActionMapper extends PayComponentMapper implements ActionMapper {
+public class ChangeActionMapper extends HelperMapper implements ActionMapper {
 
   @Override
   public Action mapToAction(EmployeeRecord employeeRecord, Validator validator)

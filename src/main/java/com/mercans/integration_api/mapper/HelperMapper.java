@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
-public class PayComponentMapper {
+public class HelperMapper {
 
   public List<PayComponent> buildPayComponents(EmployeeRecord employeeRecord) {
     // pay

@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.*;
 import org.apache.commons.lang3.ObjectUtils;
 
-public class HireActionMapper extends PayComponentMapper implements ActionMapper {
+public class HireActionMapper extends HelperMapper implements ActionMapper {
   @Override
   public Action mapToAction(EmployeeRecord employeeRecord, Validator validator)
       throws UnskippableCsvException {
