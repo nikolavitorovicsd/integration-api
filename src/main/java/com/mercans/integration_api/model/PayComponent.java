@@ -13,7 +13,5 @@ public record PayComponent(
         @Positive(message = "payComponent amount must be positive number")
         BigDecimal amount,
     @NotNull(message = "payComponent currency must not be null") Currency currency,
-
-    // TODO !!! ADD VALIDATION THAT CHECKS IF END DATE IS BEFORE START DATE!
     @NotNull(message = "payComponent startDate must not be null") LocalDate startDate,
     @NotNull(message = "payComponent terminationDate must not be null") LocalDate endDate) {}

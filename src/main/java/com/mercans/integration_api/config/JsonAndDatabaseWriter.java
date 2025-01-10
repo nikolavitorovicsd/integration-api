@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Slf4j
-public class JsonWriter implements ItemWriter<Action> {
+public class JsonAndDatabaseWriter implements ItemWriter<Action> {
 
   private final String targetJsonPath;
   private final String csvFileName;
@@ -37,7 +37,7 @@ public class JsonWriter implements ItemWriter<Action> {
   private final BulkInsertService bulkInsertService;
   private final BatchJobCache batchJobCache;
 
-  public JsonWriter(
+  public JsonAndDatabaseWriter(
       @Value("#{jobParameters['" + BATCH_JOB_JSON_FILE_PATH + "']}") String targetJsonPath,
       @Value("#{jobParameters['" + BATCH_JOB_CSV_FILE_NAME + "']}") String csvFileName,
       @Value("#{jobParameters['" + BATCH_JOB_JSON_UUID + "']}") UUID jsonResponseUUID,

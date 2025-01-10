@@ -39,6 +39,4 @@ server:
 # custom batch config
 batch-config:
   chunk-size: 10000 # chunk size which determines how many rows are processed during read/process/write
-  skip-limit: 100000 # 100k rows
-
 

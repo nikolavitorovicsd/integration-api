@@ -51,15 +51,15 @@ public class SpringBatchConfiguration {
       JobRepository jobRepository,
       PlatformTransactionManager platformTransactionManager,
       CsvFileReader csvFileReader,
-      JsonProcessor jsonProcessor,
-      JsonWriter jsonWriter,
+      CsvLinesProcessor csvLinesProcessor,
+      JsonAndDatabaseWriter jsonAndDatabaseWriter,
       // chunkSize = 1 is used during e2e testing
       @Value("${batch-config.chunk-size: 1}") int chunkSize) {
     return new StepBuilder("readCsvStep", jobRepository)
         .<EmployeeRecord, Action>chunk(chunkSize, platformTransactionManager)
         .reader(csvFileReader)
-        .processor(jsonProcessor)
-        .writer(jsonWriter)
+        .processor(csvLinesProcessor)
+        .writer(jsonAndDatabaseWriter)
         .build();
   }
 

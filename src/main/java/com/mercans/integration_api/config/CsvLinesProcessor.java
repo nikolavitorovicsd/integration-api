@@ -22,13 +22,13 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Slf4j
-public class JsonProcessor implements ItemProcessor<EmployeeRecord, Action> {
+public class CsvLinesProcessor implements ItemProcessor<EmployeeRecord, Action> {
 
   private final Validator validator;
   private final UniversalMapper universalMapper;
   private final BatchJobCache batchJobCache;
 
-  public JsonProcessor(
+  public CsvLinesProcessor(
       Validator validator, UniversalMapper universalMapper, BatchJobCache batchJobCache) {
     this.validator = validator;
     this.universalMapper = universalMapper;
