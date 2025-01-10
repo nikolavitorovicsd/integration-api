@@ -55,9 +55,9 @@ public class SaveJsonToDbAndRemoveAfterJobListener implements JobExecutionListen
       // remove json
       FileUtils.deleteFile(sourceJsonPath);
       log.info("Deleted json file '{}'.", jsonFileName);
-    } catch (IOException e) {
-      log.error("Exception during compressing and removing of json: {}", e.getMessage());
-      throw new RuntimeException(e);
+    } catch (IOException exception) {
+      log.error("Exception during compressing and removing of json: {}", exception.getMessage());
+      throw new RuntimeException(exception);
     }
   }
 }

@@ -15,8 +15,8 @@ public class FileUtils {
     try {
       Path filePath = Paths.get(pathToFile);
       Files.delete(filePath);
-    } catch (IOException e) {
-      log.error("File for deletion not found, cause: {}", e.getMessage());
+    } catch (IOException exception) {
+      log.error("File for deletion not found, cause: {}", exception.getMessage());
       throw new RuntimeException("File you are trying to delete doesn't exist!");
     }
   }

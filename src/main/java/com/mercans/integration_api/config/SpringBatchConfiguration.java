@@ -7,6 +7,7 @@ import com.mercans.integration_api.config.listeners.SaveJsonToDbAndRemoveAfterJo
 import com.mercans.integration_api.constants.GlobalConstants;
 import com.mercans.integration_api.model.EmployeeRecord;
 import com.mercans.integration_api.model.actions.Action;
+import java.util.concurrent.Semaphore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -84,5 +85,10 @@ public class SpringBatchConfiguration {
     jobLauncher.setTaskExecutor(threadPoolTaskExecutor);
     jobLauncher.afterPropertiesSet();
     return jobLauncher;
+  }
+
+  @Bean
+  Semaphore batchSemaphore() {
+    return new Semaphore(1);
   }
 }

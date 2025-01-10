@@ -29,7 +29,8 @@ public class CreatePersonSalariesDbViewAfterJobListener implements JobExecutionL
       Resource classPathResource =
           new ClassPathResource("sql/create_employees_current_salaries_view.sql");
       sqlQuery = Files.readString(Paths.get(classPathResource.getURI()));
-    } catch (IOException e) {
+    } catch (IOException exception) {
+      log.error(exception.getMessage());
       throw new RuntimeException("View sql script is missing!");
     }
     jdbcTemplate.execute(sqlQuery);

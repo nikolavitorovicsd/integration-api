@@ -3,9 +3,9 @@ package com.mercans.integration_api.config.listeners;
 import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.BatchJobStatistics;
+import java.util.concurrent.Semaphore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -19,6 +19,7 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
 
   private final EmployeeRepository employeeRepository;
   private final BatchJobCache batchJobCache;
+  private final Semaphore batchSemaphore;
 
   // load all existing employees to cache
   @Override
@@ -28,7 +29,6 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
     batchJobCache.putStatistics(new BatchJobStatistics(employeeCodes));
   }
 
-  // clear cache
   @Override
   public void afterJob(JobExecution jobExecution) {
     log.info(
@@ -36,9 +36,10 @@ public class AddStatisticsBeforeJobAndRemoveAfterJobListener implements JobExecu
         batchJobCache.getStatistics().getJsonFileLinesCount(),
         batchJobCache.getStatistics().getCsvFileReadLinesCount());
 
+    // clear cache
     batchJobCache.clearStatistics();
-    if (ObjectUtils.isNotEmpty(batchJobCache.getDataMap())) {
-      throw new RuntimeException("Failed to clear cache after job!");
-    }
+
+    // release semaphore
+    batchSemaphore.release();
   }
 }

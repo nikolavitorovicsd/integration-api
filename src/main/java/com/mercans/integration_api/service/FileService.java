@@ -27,8 +27,8 @@ public class FileService {
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
       return targetLocation;
-    } catch (IOException e) {
-      log.error("Failed to upload the file: {}", e.getMessage());
+    } catch (IOException exception) {
+      log.error("Failed to upload the file: {}", exception.getMessage());
       return null;
     }
   }

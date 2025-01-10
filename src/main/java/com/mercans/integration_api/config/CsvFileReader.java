@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
+@Slf4j
 public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
 
   private final String csvFileName;
@@ -48,11 +50,12 @@ public class CsvFileReader implements ItemStreamReader<EmployeeRecord> {
               // handle white spaces in csv
               .withIgnoreLeadingWhiteSpace(true)
               // handle all kinds of CSV exceptions during read
-              .withExceptionHandler(new CsvReadCustomExceptionHandler())
+              .withExceptionHandler(new CsvReadCustomExceptionHandler(batchJobCache))
               .build();
 
       csvIterator = csvToBean.iterator();
-    } catch (IOException e) {
+    } catch (IOException exception) {
+      log.error("Failed to read CSV file, reason: {}", exception.getMessage());
       throw new RuntimeException(String.format("File with name '%s' doesn't exist!", csvFileName));
     }
   }

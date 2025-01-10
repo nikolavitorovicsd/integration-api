@@ -29,10 +29,10 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,6 +81,7 @@ public class ReadCsvBatchJobIntegrationTest {
   @Autowired private BatchJobCache batchJobCache;
   @Autowired private CsvReadService csvReadService;
   @Autowired private JdbcTemplate jdbcTemplate;
+  private Semaphore batchSemaphore;
 
   @Container
   private static final PostgreSQLContainer<?> POSTGRE_SQL_CONTAINER =
@@ -100,14 +101,13 @@ public class ReadCsvBatchJobIntegrationTest {
 
   @BeforeEach
   void batchSetup() {
-    jobLauncherTestUtils.setJobLauncher(asyncJobLauncher);
-    jobRepositoryTestUtils.removeJobExecutions();
-  }
+    batchSemaphore = new Semaphore(1);
 
-  @AfterEach
-  void cleanDb() {
+    jobLauncherTestUtils.setJobLauncher(asyncJobLauncher);
+
     // important to remove previous data
     employeeRepository.deleteAll();
+    jobRepositoryTestUtils.removeJobExecutions();
   }
 
   // e2e test for provided "input_01.csv" file
@@ -167,6 +167,9 @@ public class ReadCsvBatchJobIntegrationTest {
 
     // assert view equality
     assertThat(employeeSalaryViewList).hasSize(0);
+
+    // assert semaphore release
+    assertEquals(1, batchSemaphore.availablePermits());
   }
 
   // e2e test for provided "input_02.csv" file
@@ -262,6 +265,9 @@ public class ReadCsvBatchJobIntegrationTest {
                 "EUR",
                 LocalDate.parse("2025-12-31"),
                 LocalDate.parse("2026-02-28")));
+
+    // assert semaphore release
+    assertEquals(1, batchSemaphore.availablePermits());
   }
 
   // e2e test for provided "input_03.csv" file
@@ -320,6 +326,9 @@ public class ReadCsvBatchJobIntegrationTest {
     // assert view equality
     var employeeSalaryViewList = employeeRepository.getAllEmployeeViews();
     assertThat(employeeSalaryViewList).hasSize(0);
+
+    // assert semaphore release
+    assertEquals(1, batchSemaphore.availablePermits());
   }
 
   // source path of csv file that needs to be copied to csv_files directory to be picked up by job

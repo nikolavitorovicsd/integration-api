@@ -1,6 +1,5 @@
 package com.mercans.integration_api.exception.handlers;
 
-import com.mercans.integration_api.exception.BatchJobAlreadyRunningException;
 import com.mercans.integration_api.exception.JsonFileNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,13 +21,6 @@ public class ControllerExceptionHandler {
       JsonFileNotFoundException exception) {
     log.warn(exception.getMessage());
     return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(BatchJobAlreadyRunningException.class)
-  public ResponseEntity<String> handleBatchJobAlreadyRunningException(
-      BatchJobAlreadyRunningException exception) {
-    log.warn(exception.getMessage());
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
