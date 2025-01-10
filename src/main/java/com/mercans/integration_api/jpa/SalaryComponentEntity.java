@@ -4,7 +4,6 @@ import com.mercans.integration_api.model.enums.Currency;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import lombok.*;
 
@@ -38,7 +37,7 @@ public class SalaryComponentEntity {
   private LocalDate endDate;
 
   @Column(name = "delete_date")
-  private Instant deleteDate;
+  private LocalDate deleteDate;
 
   // value holder for FK to be used during bulk insert
   @Transient @EqualsAndHashCode.Exclude private Long employeeId;

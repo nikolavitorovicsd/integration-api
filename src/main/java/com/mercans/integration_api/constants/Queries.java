@@ -52,7 +52,7 @@ public class Queries {
   public static final String UNNEST_DELETE_FROM_SALARY_COMPONENT_QUERY =
       """
           UPDATE salary_component AS sc
-          SET delete_date = ?::TIMESTAMP
+          SET delete_date = ?::DATE
           WHERE (sc.person_id) IN (
             SELECT *
             FROM UNNEST(?::NUMERIC[])

@@ -14,6 +14,8 @@ import com.mercans.integration_api.model.enums.ActionType;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -177,7 +179,7 @@ public class BulkInsertService {
             .map(employee -> Date.valueOf(employee.getEmployeeHireDate()))
             .toArray(Date[]::new);
 
-    Timestamp modificationDate = Timestamp.from(Instant.now());
+    Timestamp modificationDate = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
     Timestamp[] employeesModificationDates =
         updateEmployees.stream().map(employee -> modificationDate).toArray(Timestamp[]::new);
 
@@ -231,7 +233,7 @@ public class BulkInsertService {
     Long[] employeeIdsForWhichWeNeedToRemoveSalaryComponents =
         employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
 
-    Timestamp deleteDate = Timestamp.from(Instant.now());
+    Date deleteDate = Date.valueOf(LocalDate.now());
 
     var removedSalaryComponentsCount =
         jdbcTemplate.update(

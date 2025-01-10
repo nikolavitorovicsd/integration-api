@@ -13,6 +13,7 @@ import com.mercans.integration_api.model.actions.ChangeAction;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -140,12 +141,16 @@ public class QueryArgService {
 
     Timestamp[] employeesCreationDates =
         employees.stream()
-            .map(employee -> Timestamp.from(employee.getCreationDate()))
+            .map(
+                employee ->
+                    Timestamp.from(employee.getCreationDate().truncatedTo(ChronoUnit.SECONDS)))
             .toArray(Timestamp[]::new);
 
     Timestamp[] employeesModificationDates =
         employees.stream()
-            .map(employee -> Timestamp.from(employee.getModificationDate()))
+            .map(
+                employee ->
+                    Timestamp.from(employee.getModificationDate().truncatedTo(ChronoUnit.SECONDS)))
             .toArray(Timestamp[]::new);
 
     return QueryArgHolder.builder()

@@ -20,7 +20,7 @@ CREATE TABLE salary_component (
   currency VARCHAR(3) NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  delete_date TIMESTAMP DEFAULT NULL,
+  delete_date DATE DEFAULT NULL,
 
   PRIMARY KEY (id),
   CONSTRAINT fk_person_id FOREIGN KEY (person_id) REFERENCES person(id)

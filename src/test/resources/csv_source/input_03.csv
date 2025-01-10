@@ -1,0 +1,4 @@
+SystemId,ACTION,worker_name,worker_personalCode,worker_gender,contract_workStartDate,contract_endDate,contract_workerId,pay_amount,pay_effectiveFrom,pay_currency,pay_effectiveTo,compensation_amount,compensation_currency,compensation_effectiveFrom,compensation_effectiveTo
+09E85CF7C0AE48F386ABCD14BCA66C67,add,Alberto Leonard,611208NCLTAGZQ8U-NJFVQ5OWYFG,male,10925,,611207BE,4400,10925,EUR,311225,500,EUR,311225,310226
+,,,,,,,,,,,,,,,
+09E85CF7C0AE48F386ABCD14BCA66C67,delete,,,,,,611207BE,,,,,,,,

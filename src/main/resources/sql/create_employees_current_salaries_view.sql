@@ -25,4 +25,4 @@ INNER JOIN (
 ) sc
 ON p.id = sc.person_id
 WHERE
-    (p.termination_date IS NULL OR p.termination_date >= CURRENT_DATE);  -- include active employees only
+    (p.termination_date IS NULL OR p.termination_date > CURRENT_DATE);  -- include active employees only
