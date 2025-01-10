@@ -11,7 +11,7 @@ import com.mercans.integration_api.cache.BatchJobCache;
 import com.mercans.integration_api.config.SpringBatchConfiguration;
 import com.mercans.integration_api.constants.GlobalConstants;
 import com.mercans.integration_api.jpa.EmployeeEntity;
-import com.mercans.integration_api.jpa.EmployeeView;
+import com.mercans.integration_api.jpa.EmployeeSalaryView;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.jpa.repository.JsonResponseRepository;
@@ -228,16 +228,16 @@ public class ReadCsvBatchJobIntegrationTest {
     assertThat(employeeSalaryViewList)
         .hasSize(2)
         .extracting(
-            EmployeeView::getId,
-            EmployeeView::getEmployeeFullName,
-            EmployeeView::getEmployeeGender,
-            EmployeeView::getEmployeeBirthDate,
-            EmployeeView::getEmployeeCode,
-            EmployeeView::getEmployeeHireDate,
-            EmployeeView::getAmount,
-            EmployeeView::getCurrency,
-            EmployeeView::getStartDate,
-            EmployeeView::getEndDate)
+            EmployeeSalaryView::getId,
+            EmployeeSalaryView::getEmployeeFullName,
+            EmployeeSalaryView::getEmployeeGender,
+            EmployeeSalaryView::getEmployeeBirthDate,
+            EmployeeSalaryView::getEmployeeCode,
+            EmployeeSalaryView::getEmployeeHireDate,
+            EmployeeSalaryView::getAmount,
+            EmployeeSalaryView::getCurrency,
+            EmployeeSalaryView::getStartDate,
+            EmployeeSalaryView::getEndDate)
         .contains(
             Tuple.tuple(
                 1L,

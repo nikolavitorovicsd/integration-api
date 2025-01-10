@@ -30,5 +30,5 @@ CREATE TABLE json_response (
   id UUID PRIMARY KEY,
   payload JSONB NOT NULL
 );
--- add index on foreign key todo retest
---CREATE INDEX salary_component_person_id ON salary_component USING btree (person_id)
+
+CREATE INDEX salary_component_person_id ON salary_component USING btree (person_id);

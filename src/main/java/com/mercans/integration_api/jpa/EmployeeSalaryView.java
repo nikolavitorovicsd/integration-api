@@ -3,7 +3,7 @@ package com.mercans.integration_api.jpa;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public interface EmployeeView {
+public interface EmployeeSalaryView {
 
   Long getId();
 

@@ -1,7 +1,8 @@
 package com.mercans.integration_api.jpa.repository;
 
 import com.mercans.integration_api.jpa.EmployeeEntity;
-import com.mercans.integration_api.jpa.EmployeeView;
+import com.mercans.integration_api.jpa.EmployeeIdAndCodeView;
+import com.mercans.integration_api.jpa.EmployeeSalaryView;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,11 +15,7 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> 
   @Query(" SELECT em.employeeCode FROM EmployeeEntity em ")
   Set<String> getAllEmployeeCodes();
 
-  // todo refactor to use only fields necessary and not whole object
-  @Query(" SELECT em FROM EmployeeEntity em where em.employeeCode in :employeeCodes ")
-  List<EmployeeEntity> getEmployeesByEmployeeCodes(Iterable<String> employeeCodes);
-
-  @Query(" SELECT em FROM EmployeeEntity em LEFT JOIN FETCH em.salaryComponents ORDER BY em.id")
+  @Query(" SELECT em FROM EmployeeEntity em LEFT JOIN FETCH em.salaryComponents ORDER BY em.id ")
   List<EmployeeEntity> getAllEmployees();
 
   @Query(
@@ -37,5 +34,15 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> 
           FROM employees_current_salaries as view
           """,
       nativeQuery = true)
-  List<EmployeeView> getAllEmployeeViews();
+  List<EmployeeSalaryView> getAllEmployeeViews();
+
+  @Query(
+      value =
+          """
+          SELECT p.id AS id, p.employee_code AS employeeCode
+          FROM person p
+          WHERE p.employee_code IN :employeeCodes
+          """,
+      nativeQuery = true)
+  List<EmployeeIdAndCodeView> getEmployeeIdAndCodeViewsByCodes(Iterable<String> employeeCodes);
 }

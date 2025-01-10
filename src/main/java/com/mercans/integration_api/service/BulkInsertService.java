@@ -4,6 +4,7 @@ import static com.mercans.integration_api.constants.Queries.*;
 import static java.util.stream.Collectors.toMap;
 
 import com.mercans.integration_api.jpa.EmployeeEntity;
+import com.mercans.integration_api.jpa.EmployeeIdAndCodeView;
 import com.mercans.integration_api.jpa.SalaryComponentEntity;
 import com.mercans.integration_api.jpa.repository.EmployeeRepository;
 import com.mercans.integration_api.model.QueryArgHolder;
@@ -37,9 +38,6 @@ public class BulkInsertService {
       // nothing to update
       return;
     }
-    // todo remove
-    var xx = System.currentTimeMillis();
-
     // 'person' table sequence
     queryArgService.updatePersonTablePKSequence();
     long nextEmployeeId = queryArgService.getBatchJobStatistics().getPersonSequence().get();
@@ -67,8 +65,6 @@ public class BulkInsertService {
       nextEmployeeId++;
     }
 
-    log.info("PREPARED ENTITIES AND SEQUENCE IN '{}' ms", System.currentTimeMillis() - xx);
-
     var startTime = System.currentTimeMillis();
     // execute query
     QueryArgHolder queryArgHolder =
@@ -89,7 +85,9 @@ public class BulkInsertService {
     }
 
     log.info(
-        "INSERTED {} ROWS TO DB IN '{}' ms", rowsInserted, System.currentTimeMillis() - startTime);
+        "INSERTED '{}' PERSON ROWS TO DB IN '{}' ms",
+        rowsInserted,
+        System.currentTimeMillis() - startTime);
 
     // updating the list employeeCodesThatExistInDb to have track in next chunk what was added
     queryArgService
@@ -149,7 +147,9 @@ public class BulkInsertService {
             employeesModificationDates);
 
     log.info(
-        "TERMINATED {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
+        "TERMINATED '{}' PERSON ROWS TO DB IN '{}' ms",
+        rowsUpdated,
+        System.currentTimeMillis() - startTime);
   }
 
   private void updatePersonTableOnly(List<EmployeeEntity> updateEmployees) {
@@ -194,7 +194,9 @@ public class BulkInsertService {
             employeesModificationDates);
 
     log.info(
-        "UPDATEDDD {} ROWS TO DB IN '{}' ms", rowsUpdated, System.currentTimeMillis() - startTime);
+        "UPDATED '{}' PERSON ROWS TO DB IN '{}' ms",
+        rowsUpdated,
+        System.currentTimeMillis() - startTime);
   }
 
   // this method should remove (set delete_date) all components for specific employee if new action
@@ -204,8 +206,8 @@ public class BulkInsertService {
 
     List<String> employeesCodesForWhichWeUpdatePersonComponents = new ArrayList<>();
 
-    // actions for which there exist valid pay components and for which we should remove previous
-    // components in db first and then add new ones provided from csv
+    // actions for which there exist pay components and for which we should set delete_date
+    // before we add new components provided from csv
     List<ChangeAction> actionsForWhichWeUpdatePersonComponents =
         changeActions.stream()
             .map(ChangeAction.class::cast)
@@ -221,17 +223,17 @@ public class BulkInsertService {
             .filter(Objects::nonNull)
             .toList();
 
-    // fetch all employeeIds by employee codes from above for actions that have more than 0
-    // components
-    List<EmployeeEntity> employees =
-        employeeRepository.getEmployeesByEmployeeCodes(
+    // fetch all EmployeeIdAndCodeView by employee codes
+    List<EmployeeIdAndCodeView> employeeIdAndCodeList =
+        employeeRepository.getEmployeeIdAndCodeViewsByCodes(
             employeesCodesForWhichWeUpdatePersonComponents);
 
     Map<String, Long> employeeCodeToIdMap =
-        employees.stream().collect(toMap(EmployeeEntity::getEmployeeCode, EmployeeEntity::getId));
+        employeeIdAndCodeList.stream()
+            .collect(toMap(EmployeeIdAndCodeView::getEmployeeCode, EmployeeIdAndCodeView::getId));
 
     Long[] employeeIdsForWhichWeNeedToRemoveSalaryComponents =
-        employees.stream().map(EmployeeEntity::getId).toArray(Long[]::new);
+        employeeIdAndCodeList.stream().map(EmployeeIdAndCodeView::getId).toArray(Long[]::new);
 
     Date deleteDate = Date.valueOf(LocalDate.now());
 
@@ -242,7 +244,7 @@ public class BulkInsertService {
             employeeIdsForWhichWeNeedToRemoveSalaryComponents);
 
     log.info(
-        "REMOVED COMPONENT SALARIES '{}' ROWS TO DB IN '{}' ms",
+        "REMOVED '{}' COMPONENT SALARIES ROWS TO DB IN '{}' ms",
         removedSalaryComponentsCount,
         System.currentTimeMillis() - removeComponentsStartTime);
 
@@ -263,7 +265,7 @@ public class BulkInsertService {
             queryArgHolder.componentsEndDates());
 
     log.info(
-        "ADDED COMPONENT SALARIES '{}' ROWS TO DB IN '{}' ms",
+        "INSERTED '{}' COMPONENT SALARIES ROWS TO DB IN '{}' ms",
         insertedComponentsCount,
         System.currentTimeMillis() - addComponentsStartTime);
   }

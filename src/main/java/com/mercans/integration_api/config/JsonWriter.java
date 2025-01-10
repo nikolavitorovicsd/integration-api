@@ -58,7 +58,6 @@ public class JsonWriter implements ItemWriter<Action> {
   @Override
   public void write(Chunk<? extends Action> chunk) throws IOException {
     // create directory if missing
-    var xx = System.currentTimeMillis();
     FileUtils.createDirectoryIfMissing(JSON_FILES_UPLOAD_DIRECTORY);
 
     if (log.isDebugEnabled()) {
@@ -80,9 +79,6 @@ public class JsonWriter implements ItemWriter<Action> {
     List<Action> changeActions = new ArrayList<>();
     List<Action> terminateActions = new ArrayList<>();
     List<EmployeeEntity> hireEmployees = buildInsertList(chunk, changeActions, terminateActions);
-
-    // todo remove
-    log.info("PREPARED FILE AND HIRE EMPLOYEES IN '{}' ms", System.currentTimeMillis() - xx);
 
     bulkInsertService.bulkInsert(hireEmployees);
     bulkInsertService.bulkUpdate(changeActions);
