@@ -487,7 +487,7 @@ public class ReadCsvBatchJobIntegrationTest {
                         .currency(Currency.USD)
                         .startDate(LocalDate.parse("2022-01-01"))
                         .endDate(LocalDate.parse("2022-01-31"))
-                        .deleteDate(LocalDate.parse("2025-01-10"))
+                        .deleteDate(LocalDate.now())
                         .build(),
                     SalaryComponentEntity.builder()
                         .id(2L)
@@ -519,7 +519,7 @@ public class ReadCsvBatchJobIntegrationTest {
             .employeeFullName("Alberto Leonard")
             .employeGender(Gender.M)
             .employeeBirthDate(LocalDate.parse("1961-12-08"))
-            .employeeTerminationDate(LocalDate.parse("2025-01-10"))
+            .employeeTerminationDate(LocalDate.now())
             .salaryComponents(
                 List.of(
                     SalaryComponentEntity.builder()
